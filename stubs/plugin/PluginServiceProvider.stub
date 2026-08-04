@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }}\Providers;
+
+use Syscage\Plugin\PluginServiceProviderBase;
+
+final class {{ providerClass }} extends PluginServiceProviderBase
+{
+}
