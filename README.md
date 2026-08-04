@@ -1,6 +1,5 @@
-# Syscage Plugin
+# Syscage Laravel Plugin
 
-[![Latest Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsyscage%2Flaravel-plugin%2Fmain%2Fcomposer.json%26label%3Dversion%26query%3D%24.version)](composer.json)
 [![License](https://img.shields.io/packagist/l/syscage/laravel-plugin.svg)](LICENSE.md)
 [![PHP Version](https://img.shields.io/badge/php-%5E8.2-777bb4.svg)](composer.json)
 [![Laravel](https://img.shields.io/badge/laravel-12%20%7C%2013-ff2d20.svg)](composer.json)
