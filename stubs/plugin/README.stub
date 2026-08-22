@@ -1,0 +1,19 @@
+# {{ name }}
+
+{{ description }}
+
+## Installation
+
+```bash
+php artisan plugin:install {{ alias }}
+```
+
+## Structure
+
+- `src/app` — controllers, middleware, requests, models, and this plugin's service provider
+- `src/config` — configuration, merged under the `{{ alias }}` key
+- `src/database` — migrations, factories, and seeders
+- `src/lang` — translations, registered under the `{{ alias }}` namespace
+- `src/resources/views` — views, registered under the `{{ alias }}` namespace
+- `src/routes` — `web.php`, `api.php`, and `console.php`
+- `src/public` — assets published to `/plugins/{{ alias }}`

@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+use Syscage\Plugin\Widgets\DashboardWidget;
+
+final class {{ class }} extends DashboardWidget
+{
+    public function id(): string
+    {
+        return '{{ id }}';
+    }
+
+    public function title(): string
+    {
+        return '{{ title }}';
+    }
+
+    public function component(): string
+    {
+        return '{{ component }}';
+    }
+
+    public function permission(): ?string
+    {
+        return {{ permission }};
+    }
+}

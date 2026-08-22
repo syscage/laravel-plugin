@@ -1,0 +1,7 @@
+export default function {{ name }}() {
+    return (
+        <div className="dashboard-widget">
+            <h3>{{ name }}</h3>
+        </div>
+    );
+}

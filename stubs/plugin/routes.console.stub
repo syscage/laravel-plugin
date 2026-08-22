@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Support\Facades\Artisan;
+
+/*
+|--------------------------------------------------------------------------
+| {{ name }} Console Routes
+|--------------------------------------------------------------------------
+|
+| This file is loaded by the framework's Plugin Route Manager. Define
+| Closure-based console commands here with Artisan::command(...).
+|
+*/

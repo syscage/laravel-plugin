@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| {{ name }} API Routes
+|--------------------------------------------------------------------------
+|
+| These routes are loaded by the framework's Plugin Route Manager and
+| automatically prefixed with "api" and wrapped in the "api" middleware
+| group.
+|
+*/

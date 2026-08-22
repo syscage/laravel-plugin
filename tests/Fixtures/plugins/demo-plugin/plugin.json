@@ -1,0 +1,16 @@
+{
+    "id": null,
+    "name": "DemoPlugin",
+    "alias": "demo-plugin",
+    "description": "A fixture plugin used by the test suite.",
+    "version": "1.0.0",
+    "provider": "Syscage\\Plugin\\Tests\\Fixtures\\DemoPlugin\\Providers\\DemoPluginServiceProvider",
+    "namespace": "Syscage\\Plugin\\Tests\\Fixtures\\DemoPlugin",
+    "priority": 50,
+    "enabled": true,
+    "requires": [],
+    "conflicts": [],
+    "permissions": [],
+    "sidebar": {},
+    "authors": []
+}

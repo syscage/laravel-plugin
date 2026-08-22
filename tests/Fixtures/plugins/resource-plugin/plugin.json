@@ -1,0 +1,16 @@
+{
+    "id": null,
+    "name": "ResourcePlugin",
+    "alias": "resource-plugin",
+    "description": "A fixture plugin exercising every resource manager.",
+    "version": "1.0.0",
+    "provider": "Syscage\\Plugin\\Tests\\Fixtures\\ResourcePlugin\\Providers\\ResourcePluginServiceProvider",
+    "namespace": "Syscage\\Plugin\\Tests\\Fixtures\\ResourcePlugin",
+    "priority": 100,
+    "enabled": true,
+    "requires": [],
+    "conflicts": [],
+    "permissions": [],
+    "sidebar": {},
+    "authors": []
+}
