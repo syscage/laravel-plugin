@@ -197,7 +197,7 @@ final class PluginServiceProvider extends ServiceProvider
 
         $this->app->singleton(PluginCacheInterface::class, static fn (Application $app): PluginCache => new PluginCache(
             $app->make(Filesystem::class),
-            $app->make('config')->get('plugin.cache.plugins'),
+            $app->make('config')->get('plugin.cache.plugins', $app->basePath('bootstrap/cache/plugins.php')),
         ));
 
         $this->app->singleton(PluginDiscoveryInterface::class, static fn (Application $app): PluginDiscovery => new PluginDiscovery(
@@ -206,8 +206,8 @@ final class PluginServiceProvider extends ServiceProvider
             $app->make(PluginAutoloaderInterface::class),
             $app->make(PluginCacheInterface::class),
             $app->make(PluginRegistryInterface::class),
-            $app->make('config')->get('plugin.plugins_path'),
-            $app->make('config')->get('plugin.manifest_file'),
+            $app->make('config')->get('plugin.plugins_path', $app->basePath('plugins')),
+            $app->make('config')->get('plugin.manifest_file', 'plugin.json'),
         ));
 
         $this->app->singleton(PluginManagerInterface::class, PluginManager::class);
@@ -218,25 +218,25 @@ final class PluginServiceProvider extends ServiceProvider
             $app->make(PluginDependencyResolverInterface::class),
             $app->make(PluginRegistryInterface::class),
             $app->make(Dispatcher::class),
-            $app->make('config')->get('plugin.manifest_file'),
+            $app->make('config')->get('plugin.manifest_file', 'plugin.json'),
         ));
 
         $this->app->singleton(PluginSidebarManagerInterface::class, static fn (Application $app): PluginSidebarManager => new PluginSidebarManager(
             $app->make(Filesystem::class),
-            $app->make('config')->get('plugin.cache.sidebar'),
+            $app->make('config')->get('plugin.cache.sidebar', $app->basePath('bootstrap/cache/sidebar.php')),
         ));
 
         $this->app->singleton(FrontendDetectorInterface::class, static fn (Application $app): FrontendDetector => new FrontendDetector(
             $app->make(Filesystem::class),
             $app->basePath('package.json'),
-            $app->make('config')->get('plugin.frontend'),
+            $app->make('config')->get('plugin.frontend', 'auto'),
         ));
 
         $this->app->singleton(FrontendManifestGeneratorInterface::class, static fn (Application $app): FrontendManifestGenerator => new FrontendManifestGenerator(
             $app->make(Filesystem::class),
             $app->make(Router::class),
             $app->make(PluginRouteFinder::class),
-            $app->make('config')->get('plugin.cache.frontend'),
+            $app->make('config')->get('plugin.cache.frontend', $app->basePath('bootstrap/cache/plugins.ts')),
         ));
     }
 
@@ -251,7 +251,7 @@ final class PluginServiceProvider extends ServiceProvider
 
         $this->app->singleton(PluginAssetManagerInterface::class, static fn (Application $app): PluginAssetManager => new PluginAssetManager(
             $app->make(Filesystem::class),
-            $app->make('config')->get('plugin.public_path'),
+            $app->make('config')->get('plugin.public_path', $app->publicPath('plugins')),
         ));
     }
 
@@ -262,7 +262,7 @@ final class PluginServiceProvider extends ServiceProvider
 
         $this->app->singleton(DashboardWidgetCacheInterface::class, static fn (Application $app): DashboardWidgetCache => new DashboardWidgetCache(
             $app->make(Filesystem::class),
-            $app->make('config')->get('plugin.cache.widgets'),
+            $app->make('config')->get('plugin.cache.widgets', $app->basePath('bootstrap/cache/widgets.php')),
         ));
 
         $this->app->singleton(DashboardWidgetDiscoveryInterface::class, DashboardWidgetDiscovery::class);
@@ -283,7 +283,7 @@ final class PluginServiceProvider extends ServiceProvider
             $app->make(DashboardWidgetRepositoryInterface::class),
             $app->make(Filesystem::class),
             $app->make(Dispatcher::class),
-            $app->make('config')->get('plugin.cache.dashboard'),
+            $app->make('config')->get('plugin.cache.dashboard', $app->basePath('bootstrap/cache/dashboard.php')),
         ));
 
         $this->app->singleton(WidgetRendererInterface::class, WidgetRenderer::class);
