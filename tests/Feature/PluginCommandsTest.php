@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Syscage\Plugin\Tests\Feature;
 
 use Illuminate\Filesystem\Filesystem;
+use Syscage\Plugin\Contracts\PluginRecordRepositoryInterface;
 use Syscage\Plugin\Tests\TestCase;
 
 /**
@@ -33,6 +34,7 @@ final class PluginCommandsTest extends TestCase
         $app['config']->set('plugin.cache.plugins', $this->cacheDirectory . '/plugins.php');
         $app['config']->set('plugin.cache.sidebar', $this->cacheDirectory . '/sidebar.php');
         $app['config']->set('plugin.cache.frontend', $this->cacheDirectory . '/plugins.ts');
+        $app['config']->set('plugin.cache.widgets', $this->cacheDirectory . '/widgets.php');
         $app['config']->set('plugin.public_path', $this->cacheDirectory . '/public');
     }
 
@@ -199,5 +201,70 @@ final class PluginCommandsTest extends TestCase
         $this->artisan('plugin:doctor', ['alias' => 'resource-plugin'])
             ->assertSuccessful()
             ->expectsOutputToContain('All checked plugins are healthy.');
+    }
+
+    public function test_delete_removes_an_installed_plugin_completely(): void
+    {
+        $this->artisan('plugin:install', ['alias' => 'resource-plugin'])->assertSuccessful();
+        $this->artisan('plugin:publish', ['alias' => 'resource-plugin'])->assertSuccessful();
+
+        $this->assertDatabaseHas(config('plugin.table'), ['alias' => 'resource-plugin']);
+        $this->assertFileExists($this->cacheDirectory . '/public/resource-plugin/asset.txt');
+        $this->assertDirectoryExists($this->pluginsPath . '/resource-plugin');
+
+        $this->artisan('plugin:delete', ['alias' => 'resource-plugin', '--force' => true])
+            ->assertSuccessful()
+            ->expectsOutputToContain('permanently deleted');
+
+        $this->assertDatabaseMissing(config('plugin.table'), ['alias' => 'resource-plugin']);
+        $this->assertDirectoryDoesNotExist($this->pluginsPath . '/resource-plugin');
+        $this->assertFileDoesNotExist($this->cacheDirectory . '/public/resource-plugin');
+    }
+
+    public function test_delete_without_force_can_be_cancelled(): void
+    {
+        $this->artisan('plugin:install', ['alias' => 'resource-plugin'])->assertSuccessful();
+
+        $this->artisan('plugin:delete', ['alias' => 'resource-plugin'])
+            ->expectsConfirmation(
+                'This will permanently delete [resource-plugin]: its database record, every compiled cache, '
+                . 'its published public assets, and every file under its plugin directory. '
+                . 'This cannot be undone. Continue?',
+                'no',
+            )
+            ->assertSuccessful()
+            ->expectsOutputToContain('Delete cancelled.');
+
+        $this->assertDatabaseHas(config('plugin.table'), ['alias' => 'resource-plugin']);
+        $this->assertDirectoryExists($this->pluginsPath . '/resource-plugin');
+    }
+
+    public function test_delete_purges_a_plugin_record_that_can_no_longer_be_resolved(): void
+    {
+        // Simulates the framework's own worst-case scenario: a database
+        // record (and, in practice, stale compiled caches) surviving
+        // after a plugin's own directory/manifest has already vanished
+        // from disk, so the registry never resolves it at all.
+        app(PluginRecordRepositoryInterface::class)->create([
+            'name' => 'Ghost',
+            'alias' => 'ghost-plugin',
+            'description' => '',
+            'version' => '1.0.0',
+            'provider' => 'Ghost\\Provider',
+            'namespace' => 'Ghost',
+            'priority' => 100,
+            'enabled' => true,
+            'installed_at' => now(),
+            'enabled_at' => now(),
+            'path' => $this->pluginsPath . '/ghost-plugin',
+            'hash' => 'irrelevant',
+        ]);
+
+        $this->artisan('plugin:delete', ['alias' => 'ghost-plugin', '--force' => true])
+            ->assertSuccessful()
+            ->expectsOutputToContain('could not be resolved')
+            ->expectsOutputToContain('permanently deleted');
+
+        $this->assertDatabaseMissing(config('plugin.table'), ['alias' => 'ghost-plugin']);
     }
 }

@@ -57,11 +57,12 @@ php artisan plugin:enable blog-post
 php artisan plugin:disable blog-post
 php artisan plugin:update blog-post      # syncs the DB to the current manifest version
 php artisan plugin:uninstall blog-post
+php artisan plugin:delete blog-post      # permanently deletes it: DB record, caches, assets, and files on disk
 php artisan plugin:doctor                  # health-check every plugin's providers/dependencies
 php artisan plugin:publish blog-post     # (re-)publish a plugin's public assets
 ```
 
-`requires`/`conflicts` in `plugin.json` are validated (including semver version constraints) before install/enable, and a plugin's loading order is resolved topologically by its dependencies, then by `priority`.
+`requires`/`conflicts` in `plugin.json` are validated (including semver version constraints) before install/enable, and a plugin's loading order is resolved topologically by its dependencies, then by `priority`. Unlike `plugin:uninstall` (which only removes the database record and runs the plugin's `uninstall()` hook), `plugin:delete` removes the plugin from everywhere — it's the one to reach for when you want a plugin fully gone, and it's resilient enough to also clean up a plugin whose directory was already removed by hand, leaving only an orphaned database record and stale caches behind.
 
 ### Customizing the plugin record model
 

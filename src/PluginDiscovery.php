@@ -53,6 +53,18 @@ final class PluginDiscovery implements PluginDiscoveryInterface
         $plugins = [];
 
         foreach ($this->cache->get() as $alias => $entry) {
+            $manifestPath = $entry['path'] . DIRECTORY_SEPARATOR . $this->manifestFilename;
+
+            if (! $this->manifests->exists($manifestPath)) {
+                // The cache is stale: this plugin's directory (or its
+                // manifest) was removed from disk since the cache was
+                // built — most likely by deleting a plugin directory
+                // manually instead of through the framework. Rebuilding
+                // from the filesystem is the only way to recover a
+                // consistent, resolvable set of plugins.
+                return $this->discoverFromFilesystem();
+            }
+
             $manifest = PluginManifest::fromArray($entry['manifest']);
             $plugins[$alias] = $this->resolvePlugin($manifest, $entry['path']);
         }

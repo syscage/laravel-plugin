@@ -50,6 +50,7 @@ use Syscage\Plugin\Console\Commands\Generators\MakeWidgetPluginCommand;
 use Syscage\Plugin\Console\Commands\MakePluginCommand;
 use Syscage\Plugin\Console\Commands\PluginCacheCommand;
 use Syscage\Plugin\Console\Commands\PluginClearCommand;
+use Syscage\Plugin\Console\Commands\PluginDeleteCommand;
 use Syscage\Plugin\Console\Commands\PluginDisableCommand;
 use Syscage\Plugin\Console\Commands\PluginDiscoverCommand;
 use Syscage\Plugin\Console\Commands\PluginDoctorCommand;
@@ -154,6 +155,7 @@ final class PluginServiceProvider extends ServiceProvider
                 PluginDisableCommand::class,
                 PluginInstallCommand::class,
                 PluginUninstallCommand::class,
+                PluginDeleteCommand::class,
                 PluginUpdateCommand::class,
                 PluginPublishCommand::class,
                 PluginDoctorCommand::class,

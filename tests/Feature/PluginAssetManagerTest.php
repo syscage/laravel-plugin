@@ -54,4 +54,26 @@ final class PluginAssetManagerTest extends TestCase
             $this->publicPath . DIRECTORY_SEPARATOR . $plugin->alias() . DIRECTORY_SEPARATOR . 'asset.txt',
         );
     }
+
+    public function test_unregister_removes_the_published_assets(): void
+    {
+        $manager = new PluginAssetManager(new Filesystem(), $this->publicPath);
+        $plugin = $this->makeResourcePlugin();
+
+        $manager->register($plugin);
+        $manager->unregister($plugin->alias());
+
+        $this->assertFileDoesNotExist(
+            $this->publicPath . DIRECTORY_SEPARATOR . $plugin->alias() . DIRECTORY_SEPARATOR . 'asset.txt',
+        );
+    }
+
+    public function test_unregister_does_not_fail_when_nothing_was_ever_registered(): void
+    {
+        $manager = new PluginAssetManager(new Filesystem(), $this->publicPath);
+
+        $manager->unregister('never-registered');
+
+        $this->addToAssertionCount(1);
+    }
 }

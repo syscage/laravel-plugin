@@ -72,4 +72,35 @@ final class PluginDiscoveryTest extends TestCase
             $fromCache['demo-plugin']->alias(),
         );
     }
+
+    public function test_it_falls_back_to_the_filesystem_when_a_cached_plugin_directory_no_longer_exists(): void
+    {
+        $files = new Filesystem();
+        $sandbox = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('plugin-discovery-stale-', true);
+        $files->copyDirectory(__DIR__ . '/../Fixtures/plugins', $sandbox);
+
+        $discovery = new PluginDiscovery(
+            $files,
+            new PluginManifestRepository($files),
+            new PluginAutoloader(),
+            new PluginCache($files, $this->cachePath),
+            $this->registry,
+            $sandbox,
+            'plugin.json',
+        );
+
+        // Populate the cache while both fixture plugins still exist on disk.
+        $discovery->discover(fresh: true);
+
+        // Simulate a plugin directory being deleted by hand, leaving a
+        // stale reference behind in the compiled discovery cache.
+        $files->deleteDirectory($sandbox . '/demo-plugin');
+
+        $plugins = $discovery->discover(fresh: false);
+
+        $this->assertArrayNotHasKey('demo-plugin', $plugins);
+        $this->assertArrayHasKey('resource-plugin', $plugins);
+
+        $files->deleteDirectory($sandbox);
+    }
 }
