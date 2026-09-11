@@ -34,7 +34,6 @@ final class PluginCommandsTest extends TestCase
         $app['config']->set('plugin.cache.plugins', $this->cacheDirectory . '/plugins.php');
         $app['config']->set('plugin.cache.sidebar', $this->cacheDirectory . '/sidebar.php');
         $app['config']->set('plugin.cache.frontend', $this->cacheDirectory . '/plugins.ts');
-        $app['config']->set('plugin.cache.widgets', $this->cacheDirectory . '/widgets.php');
         $app['config']->set('plugin.public_path', $this->cacheDirectory . '/public');
     }
 

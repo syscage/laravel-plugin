@@ -6,7 +6,6 @@ namespace Syscage\Plugin\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
-use Syscage\Plugin\Contracts\DashboardWidgetCacheInterface;
 use Syscage\Plugin\Contracts\PluginAssetManagerInterface;
 use Syscage\Plugin\Contracts\PluginCacheInterface;
 use Syscage\Plugin\Contracts\PluginLifecycleInterface;
@@ -42,7 +41,6 @@ final class PluginDeleteCommand extends Command
         PluginRecordRepositoryInterface $records,
         PluginCacheInterface $cache,
         PluginSidebarManagerInterface $sidebar,
-        DashboardWidgetCacheInterface $widgets,
         PluginAssetManagerInterface $assets,
         Filesystem $files,
     ): int {
@@ -81,7 +79,6 @@ final class PluginDeleteCommand extends Command
 
         $cache->forget();
         $sidebar->forget();
-        $widgets->forget();
         $assets->unregister($alias);
 
         $path = $plugin?->path() ?? rtrim((string) config('plugin.plugins_path'), '/\\') . DIRECTORY_SEPARATOR . $alias;

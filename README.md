@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/php-%5E8.2-777bb4.svg)](composer.json)
 [![Laravel](https://img.shields.io/badge/laravel-12%20%7C%2013-ff2d20.svg)](composer.json)
 
-A WordPress-style plugin framework for Laravel 12+ applications. `syscage/laravel-plugin` turns a `plugins/` directory in your host application into a set of independently discoverable, installable, and toggleable Laravel packages — each with its own routes, views, translations, migrations, config, assets, console commands, and dashboard widgets — without ever running `composer dump-autoload`.
+A WordPress-style plugin framework for Laravel 12+ applications. `syscage/laravel-plugin` turns a `plugins/` directory in your host application into a set of independently discoverable, installable, and toggleable Laravel packages — each with its own routes, views, translations, migrations, config, assets, and console commands — without ever running `composer dump-autoload`.
 
 This package does not manage your application's modules or its own business logic; it manages the plugins that live inside `plugins/` in your host application.
 

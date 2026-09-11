@@ -34,7 +34,6 @@ final class PluginManifest implements PluginManifestInterface
         private readonly array $conflicts,
         private readonly array $permissions,
         private readonly array $sidebar,
-        private readonly array $widgets,
         private readonly array $authors,
         private readonly ?string $tablePrefix,
     ) {
@@ -69,7 +68,6 @@ final class PluginManifest implements PluginManifestInterface
             conflicts: (array) ($data['conflicts'] ?? []),
             permissions: (array) ($data['permissions'] ?? []),
             sidebar: (array) ($data['sidebar'] ?? []),
-            widgets: (array) ($data['widgets'] ?? []),
             authors: (array) ($data['authors'] ?? []),
             tablePrefix: isset($data['table_prefix']) && $data['table_prefix'] !== ''
                 ? (string) $data['table_prefix']
@@ -142,11 +140,6 @@ final class PluginManifest implements PluginManifestInterface
         return $this->sidebar;
     }
 
-    public function widgets(): array
-    {
-        return $this->widgets;
-    }
-
     public function authors(): array
     {
         return $this->authors;
@@ -181,19 +174,10 @@ final class PluginManifest implements PluginManifestInterface
         return $this->with(version: $version);
     }
 
-    /**
-     * Return a copy of this manifest with a different set of widget classes.
-     */
-    public function withWidgets(array $widgets): self
-    {
-        return $this->with(widgets: $widgets);
-    }
-
     private function with(
         ?string $id = null,
         ?bool $enabled = null,
         ?string $version = null,
-        ?array $widgets = null,
     ): self {
         return new self(
             id: $id ?? $this->id,
@@ -209,7 +193,6 @@ final class PluginManifest implements PluginManifestInterface
             conflicts: $this->conflicts,
             permissions: $this->permissions,
             sidebar: $this->sidebar,
-            widgets: $widgets ?? $this->widgets,
             authors: $this->authors,
             tablePrefix: $this->tablePrefix,
         );
@@ -231,7 +214,6 @@ final class PluginManifest implements PluginManifestInterface
             'conflicts' => $this->conflicts,
             'permissions' => $this->permissions,
             'sidebar' => $this->sidebar,
-            'widgets' => $this->widgets,
             'authors' => $this->authors,
             'table_prefix' => $this->tablePrefix,
         ];

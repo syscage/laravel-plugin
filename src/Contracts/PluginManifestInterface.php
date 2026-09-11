@@ -83,14 +83,6 @@ interface PluginManifestInterface
     public function sidebar(): array;
 
     /**
-     * The fully qualified class names of the dashboard widgets this plugin
-     * contributes. Each class must implement {@see DashboardWidgetInterface}.
-     *
-     * @return array<int, string>
-     */
-    public function widgets(): array;
-
-    /**
      * The plugin's authors and maintainers.
      *
      * @return array<int, array<string, mixed>>

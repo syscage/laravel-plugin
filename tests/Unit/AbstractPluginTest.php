@@ -78,11 +78,6 @@ final class AbstractPluginTest extends TestCase
                 return [];
             }
 
-            public function widgets(): array
-            {
-                return [];
-            }
-
             public function authors(): array
             {
                 return [];

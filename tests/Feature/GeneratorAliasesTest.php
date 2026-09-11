@@ -116,6 +116,71 @@ final class GeneratorAliasesTest extends TestCase
         $this->assertStringContainsString("Schema::create('blog_posts'", file_get_contents($migrations[0]));
     }
 
+    public function test_make_class_plugin_writes_into_the_plugin_app_path_under_its_namespace(): void
+    {
+        $alias = $this->makePlugin();
+
+        $this->artisan('make:class-plugin', ['plugin' => $alias, 'name' => 'Support/PostFormatter'])->assertSuccessful();
+
+        $path = $this->pluginsPath . '/' . $alias . '/src/app/Support/PostFormatter.php';
+        $this->assertFileExists($path);
+        $this->assertStringContainsString('namespace GeneratedPlugins\\BlogPlugin\\Support;', file_get_contents($path));
+    }
+
+    public function test_make_interface_plugin_writes_into_the_plugin_app_path_under_its_namespace(): void
+    {
+        $alias = $this->makePlugin();
+
+        $this->artisan('make:interface-plugin', ['plugin' => $alias, 'name' => 'Contracts/Formattable'])->assertSuccessful();
+
+        $path = $this->pluginsPath . '/' . $alias . '/src/app/Contracts/Formattable.php';
+        $this->assertFileExists($path);
+        $this->assertStringContainsString('namespace GeneratedPlugins\\BlogPlugin\\Contracts;', file_get_contents($path));
+        $this->assertStringContainsString('interface Formattable', file_get_contents($path));
+    }
+
+    public function test_make_trait_plugin_writes_into_the_plugin_app_path_under_its_namespace(): void
+    {
+        $alias = $this->makePlugin();
+
+        $this->artisan('make:trait-plugin', ['plugin' => $alias, 'name' => 'Concerns/FormatsPosts'])->assertSuccessful();
+
+        $path = $this->pluginsPath . '/' . $alias . '/src/app/Concerns/FormatsPosts.php';
+        $this->assertFileExists($path);
+        $this->assertStringContainsString('namespace GeneratedPlugins\\BlogPlugin\\Concerns;', file_get_contents($path));
+        $this->assertStringContainsString('trait FormatsPosts', file_get_contents($path));
+    }
+
+    public function test_make_interface_plugin_default_namespace_is_influenced_by_the_hosts_own_contracts_directory(): void
+    {
+        $alias = $this->makePlugin();
+
+        (new Filesystem())->makeDirectory(app_path('Contracts'), recursive: true);
+
+        try {
+            $this->artisan('make:interface-plugin', ['plugin' => $alias, 'name' => 'Formattable'])->assertSuccessful();
+        } finally {
+            (new Filesystem())->deleteDirectory(app_path('Contracts'));
+        }
+
+        // InterfaceMakeCommand::getDefaultNamespace() checks is_dir(app_path('Contracts'))
+        // against the HOST application, not the plugin — so a bare {name} picks up an
+        // unrequested "\Contracts" segment purely because the host happens to have that
+        // directory. Passing the plugin's own fully-qualified namespace bypasses the
+        // heuristic entirely (Illuminate\Console\GeneratorCommand::qualifyClass()'s
+        // startsWith($rootNamespace) short-circuit), which is the only reliable escape.
+        $path = $this->pluginsPath . '/' . $alias . '/src/app/Contracts/Formattable.php';
+        $this->assertFileExists($path);
+        $this->assertStringContainsString('namespace GeneratedPlugins\\BlogPlugin\\Contracts;', file_get_contents($path));
+
+        $this->artisan('make:interface-plugin', [
+            'plugin' => $alias,
+            'name' => 'GeneratedPlugins\\BlogPlugin\\Escaped',
+        ])->assertSuccessful();
+
+        $this->assertFileExists($this->pluginsPath . '/' . $alias . '/src/app/Escaped.php');
+    }
+
     public function test_make_controller_plugin_supports_the_resource_option(): void
     {
         $alias = $this->makePlugin();

@@ -29,7 +29,6 @@ final class PluginManifestTest extends TestCase
             'conflicts' => [],
             'permissions' => [],
             'sidebar' => [],
-            'widgets' => [],
             'authors' => [],
             'table_prefix' => null,
         ];

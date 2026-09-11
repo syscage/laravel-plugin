@@ -28,7 +28,6 @@ final class FakePlugin implements PluginInterface
         private readonly ?string $basePath = null,
         private readonly array $sidebarValue = [],
         private readonly ?string $tablePrefixValue = null,
-        private readonly array $widgetsValue = [],
     ) {
     }
 
@@ -95,11 +94,6 @@ final class FakePlugin implements PluginInterface
     public function sidebar(): array
     {
         return $this->sidebarValue;
-    }
-
-    public function widgets(): array
-    {
-        return $this->widgetsValue;
     }
 
     public function authors(): array

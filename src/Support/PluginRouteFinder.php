@@ -35,11 +35,49 @@ final class PluginRouteFinder
         ));
     }
 
+    /**
+     * The alias of whichever of the given plugins owns the route (i.e. its
+     * controller, or closure, is defined inside that plugin's directory),
+     * or `null` if it belongs to none of them (a host-application route).
+     *
+     * @param iterable<PluginInterface> $plugins
+     */
+    public function ownerAlias(Route $route, iterable $plugins): ?string
+    {
+        $file = $this->sourceFile($route);
+
+        if ($file === null) {
+            return null;
+        }
+
+        foreach ($plugins as $plugin) {
+            $pluginPath = realpath($plugin->path());
+
+            if ($pluginPath !== false && $this->isUnderPath($file, $pluginPath)) {
+                return $plugin->alias();
+            }
+        }
+
+        return null;
+    }
+
     private function belongsToPlugin(Route $route, string $pluginPath): bool
     {
         $file = $this->sourceFile($route);
 
-        return $file !== null && str_starts_with($file, $pluginPath);
+        return $file !== null && $this->isUnderPath($file, $pluginPath);
+    }
+
+    /**
+     * Whether $file lives inside the $pluginPath directory. A plain
+     * `str_starts_with()` would wrongly match a sibling plugin whose alias
+     * happens to start with the same characters (e.g. "plugins/user" is a
+     * string-prefix of "plugins/user-role"), so this requires either an
+     * exact match or a full path-segment boundary right after $pluginPath.
+     */
+    private function isUnderPath(string $file, string $pluginPath): bool
+    {
+        return $file === $pluginPath || str_starts_with($file, rtrim($pluginPath, '/\\') . DIRECTORY_SEPARATOR);
     }
 
     private function sourceFile(Route $route): ?string

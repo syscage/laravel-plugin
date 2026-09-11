@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Syscage\Plugin;
 
-use Closure;
-use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Filesystem\Filesystem;
@@ -27,10 +26,12 @@ use Syscage\Plugin\Console\Commands\Framework\RouteListPluginCommand;
 use Syscage\Plugin\Console\Commands\Framework\VendorPublishPluginCommand;
 use Syscage\Plugin\Console\Commands\Framework\ViewCachePluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeCastPluginCommand;
+use Syscage\Plugin\Console\Commands\Generators\MakeClassPluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeControllerPluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeEnumPluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeEventPluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeFactoryPluginCommand;
+use Syscage\Plugin\Console\Commands\Generators\MakeInterfacePluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeJobPluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeListenerPluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeMailPluginCommand;
@@ -46,7 +47,7 @@ use Syscage\Plugin\Console\Commands\Generators\MakeResourcePluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeRulePluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeSeederPluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeTestPluginCommand;
-use Syscage\Plugin\Console\Commands\Generators\MakeWidgetPluginCommand;
+use Syscage\Plugin\Console\Commands\Generators\MakeTraitPluginCommand;
 use Syscage\Plugin\Console\Commands\MakePluginCommand;
 use Syscage\Plugin\Console\Commands\PluginCacheCommand;
 use Syscage\Plugin\Console\Commands\PluginClearCommand;
@@ -63,18 +64,6 @@ use Syscage\Plugin\Console\Commands\PluginUninstallCommand;
 use Syscage\Plugin\Console\Commands\PluginUpdateCommand;
 use Syscage\Plugin\Console\Commands\Queue\QueueWorkPluginCommand;
 use Syscage\Plugin\Console\Commands\Testing\TestPluginCommand;
-use Syscage\Plugin\Console\Commands\Widgets\DashboardCacheCommand;
-use Syscage\Plugin\Console\Commands\Widgets\DashboardClearCommand;
-use Syscage\Plugin\Console\Commands\Widgets\WidgetCacheCommand;
-use Syscage\Plugin\Console\Commands\Widgets\WidgetClearCommand;
-use Syscage\Plugin\Console\Commands\Widgets\WidgetListCommand;
-use Syscage\Plugin\Contracts\DashboardManagerInterface;
-use Syscage\Plugin\Contracts\DashboardWidgetAuthorizationInterface;
-use Syscage\Plugin\Contracts\DashboardWidgetCacheInterface;
-use Syscage\Plugin\Contracts\DashboardWidgetDiscoveryInterface;
-use Syscage\Plugin\Contracts\DashboardWidgetManagerInterface;
-use Syscage\Plugin\Contracts\DashboardWidgetRegistryInterface;
-use Syscage\Plugin\Contracts\DashboardWidgetRepositoryInterface;
 use Syscage\Plugin\Contracts\FrontendDetectorInterface;
 use Syscage\Plugin\Contracts\FrontendManifestGeneratorInterface;
 use Syscage\Plugin\Contracts\PluginAssetManagerInterface;
@@ -84,27 +73,20 @@ use Syscage\Plugin\Contracts\PluginCommandManagerInterface;
 use Syscage\Plugin\Contracts\PluginConfigManagerInterface;
 use Syscage\Plugin\Contracts\PluginDependencyResolverInterface;
 use Syscage\Plugin\Contracts\PluginDiscoveryInterface;
+use Syscage\Plugin\Contracts\PluginFrontendRouteLinkerInterface;
 use Syscage\Plugin\Contracts\PluginLifecycleInterface;
 use Syscage\Plugin\Contracts\PluginLoaderInterface;
 use Syscage\Plugin\Contracts\PluginManagerInterface;
 use Syscage\Plugin\Contracts\PluginManifestRepositoryInterface;
 use Syscage\Plugin\Contracts\PluginMigrationManagerInterface;
+use Syscage\Plugin\Contracts\PluginPageResolverInterface;
 use Syscage\Plugin\Contracts\PluginRecordRepositoryInterface;
 use Syscage\Plugin\Contracts\PluginRegistryInterface;
 use Syscage\Plugin\Contracts\PluginRouteManagerInterface;
 use Syscage\Plugin\Contracts\PluginSidebarManagerInterface;
 use Syscage\Plugin\Contracts\PluginTranslationManagerInterface;
 use Syscage\Plugin\Contracts\PluginViewManagerInterface;
-use Syscage\Plugin\Contracts\WidgetRendererInterface;
 use Syscage\Plugin\Support\PluginRouteFinder;
-use Syscage\Plugin\Widgets\DashboardManager;
-use Syscage\Plugin\Widgets\DashboardWidgetAuthorization;
-use Syscage\Plugin\Widgets\DashboardWidgetCache;
-use Syscage\Plugin\Widgets\DashboardWidgetDiscovery;
-use Syscage\Plugin\Widgets\DashboardWidgetManager;
-use Syscage\Plugin\Widgets\DashboardWidgetRegistry;
-use Syscage\Plugin\Widgets\DashboardWidgetRepository;
-use Syscage\Plugin\Widgets\WidgetRenderer;
 
 /**
  * The package's main service provider.
@@ -124,7 +106,6 @@ final class PluginServiceProvider extends ServiceProvider
 
         $this->registerCoreServices();
         $this->registerResourceManagers();
-        $this->registerWidgetServices();
     }
 
     /**
@@ -160,12 +141,6 @@ final class PluginServiceProvider extends ServiceProvider
                 PluginPublishCommand::class,
                 PluginDoctorCommand::class,
                 PluginInfoCommand::class,
-                WidgetListCommand::class,
-                WidgetCacheCommand::class,
-                WidgetClearCommand::class,
-                DashboardCacheCommand::class,
-                DashboardClearCommand::class,
-                MakeWidgetPluginCommand::class,
                 ...$this->generatorCommands(),
             ]);
         }
@@ -180,9 +155,19 @@ final class PluginServiceProvider extends ServiceProvider
             $manager = $this->app->make(PluginManagerInterface::class);
             $manager->boot();
 
-            // Widgets are discovered whenever plugins are discovered, using
-            // their own compiled cache to avoid re-reading every manifest.
-            $this->app->make(DashboardWidgetDiscoveryInterface::class)->discover($manager->enabled());
+            // Relocates plugin-owned wayfinder route directories right
+            // after wayfinder actually regenerates them (there is nothing
+            // to relocate before it runs), never on every request/command.
+            if ($this->app->runningInConsole()) {
+                $this->app->make(Dispatcher::class)->listen(
+                    CommandFinished::class,
+                    function (CommandFinished $event) use ($manager): void {
+                        if ($event->command === 'wayfinder:generate' && $event->exitCode === 0) {
+                            $this->app->make(PluginFrontendRouteLinkerInterface::class)->register($manager->enabled());
+                        }
+                    },
+                );
+            }
         });
     }
 
@@ -238,6 +223,24 @@ final class PluginServiceProvider extends ServiceProvider
             $app->make(PluginRouteFinder::class),
             $app->make('config')->get('plugin.cache.frontend', $app->basePath('bootstrap/cache/plugins.ts')),
         ));
+
+        $this->app->singleton(PluginPageResolverInterface::class, static fn (Application $app): PluginPageResolver => new PluginPageResolver(
+            $app->make(Filesystem::class),
+            $app->make(PluginManagerInterface::class),
+            $app->basePath(),
+        ));
+
+        $this->app->singleton(PluginFrontendRouteLinkerInterface::class, static function (Application $app): PluginFrontendRouteLinker {
+            $routesPath = $app->make('config')->get('plugin.frontend_routes_path', $app->resourcePath('js/routes'));
+
+            return new PluginFrontendRouteLinker(
+                $app->make(Filesystem::class),
+                $app->make(Router::class),
+                $app->make(PluginRouteFinder::class),
+                $routesPath,
+                dirname($routesPath) . DIRECTORY_SEPARATOR . 'wayfinder',
+            );
+        });
     }
 
     private function registerResourceManagers(): void
@@ -253,40 +256,6 @@ final class PluginServiceProvider extends ServiceProvider
             $app->make(Filesystem::class),
             $app->make('config')->get('plugin.public_path', $app->publicPath('plugins')),
         ));
-    }
-
-    private function registerWidgetServices(): void
-    {
-        $this->app->singleton(DashboardWidgetRegistryInterface::class, DashboardWidgetRegistry::class);
-        $this->app->singleton(DashboardWidgetRepositoryInterface::class, DashboardWidgetRepository::class);
-
-        $this->app->singleton(DashboardWidgetCacheInterface::class, static fn (Application $app): DashboardWidgetCache => new DashboardWidgetCache(
-            $app->make(Filesystem::class),
-            $app->make('config')->get('plugin.cache.widgets', $app->basePath('bootstrap/cache/widgets.php')),
-        ));
-
-        $this->app->singleton(DashboardWidgetDiscoveryInterface::class, DashboardWidgetDiscovery::class);
-
-        $this->app->singleton(DashboardWidgetAuthorizationInterface::class, static function (Application $app): DashboardWidgetAuthorization {
-            $resolver = $app->make('config')->get('plugin.widgets.role_resolver');
-
-            return new DashboardWidgetAuthorization(
-                $app->make(Gate::class),
-                $resolver !== null ? Closure::fromCallable($resolver) : null,
-            );
-        });
-
-        $this->app->singleton(DashboardWidgetManagerInterface::class, DashboardWidgetManager::class);
-
-        $this->app->singleton(DashboardManagerInterface::class, static fn (Application $app): DashboardManager => new DashboardManager(
-            $app->make(DashboardWidgetManagerInterface::class),
-            $app->make(DashboardWidgetRepositoryInterface::class),
-            $app->make(Filesystem::class),
-            $app->make(Dispatcher::class),
-            $app->make('config')->get('plugin.cache.dashboard', $app->basePath('bootstrap/cache/dashboard.php')),
-        ));
-
-        $this->app->singleton(WidgetRendererInterface::class, WidgetRenderer::class);
     }
 
     /**
@@ -314,6 +283,9 @@ final class PluginServiceProvider extends ServiceProvider
             MakeResourcePluginCommand::class,
             MakeCastPluginCommand::class,
             MakeEnumPluginCommand::class,
+            MakeClassPluginCommand::class,
+            MakeInterfacePluginCommand::class,
+            MakeTraitPluginCommand::class,
             MakeFactoryPluginCommand::class,
             MakeSeederPluginCommand::class,
             MakeMigrationPluginCommand::class,

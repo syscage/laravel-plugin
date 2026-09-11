@@ -6,7 +6,6 @@ namespace Syscage\Plugin;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Str;
 use Syscage\Plugin\Contracts\FrontendManifestGeneratorInterface;
 use Syscage\Plugin\Contracts\PluginInterface;
 use Syscage\Plugin\Support\PluginRouteFinder;
@@ -29,13 +28,11 @@ final class FrontendManifestGenerator implements FrontendManifestGeneratorInterf
     public function generate(array $plugins): string
     {
         $pages = [];
-        $widgets = [];
         $routes = [];
         $sidebar = [];
 
         foreach ($plugins as $plugin) {
             $pages = array_merge($pages, $this->pagesFor($plugin));
-            $widgets = array_merge($widgets, $this->widgetsFor($plugin));
             $routes = array_merge($routes, $this->routesFor($plugin));
 
             if ($plugin->sidebar() !== []) {
@@ -43,7 +40,7 @@ final class FrontendManifestGenerator implements FrontendManifestGeneratorInterf
             }
         }
 
-        $contents = $this->render($pages, $widgets, $routes, $sidebar);
+        $contents = $this->render($pages, $routes, $sidebar);
 
         $directory = dirname($this->cachePath);
 
@@ -87,42 +84,6 @@ final class FrontendManifestGenerator implements FrontendManifestGeneratorInterf
     }
 
     /**
-     * Scans a plugin's "resources/js/widgets" directory, keying each widget
-     * component file by the same "{PluginStudly}/Widgets/{Name}" convention
-     * produced by `php artisan make:widget-plugin` and expected from
-     * `DashboardWidgetInterface::component()`.
-     *
-     * @return array<string, string>
-     */
-    private function widgetsFor(PluginInterface $plugin): array
-    {
-        $widgetsDirectory = $plugin->resourcePath('js' . DIRECTORY_SEPARATOR . 'widgets');
-
-        if (! $this->files->isDirectory($widgetsDirectory)) {
-            return [];
-        }
-
-        $widgets = [];
-        $pluginStudly = Str::studly(str_replace('-', ' ', $plugin->alias()));
-
-        foreach ($this->files->allFiles($widgetsDirectory) as $file) {
-            if (! in_array($file->getExtension(), self::PAGE_EXTENSIONS, true)) {
-                continue;
-            }
-
-            $relative = str_replace('\\', '/', $file->getRelativePathname());
-            $withoutExtension = preg_replace('/\.' . preg_quote($file->getExtension(), '/') . '$/', '', $relative);
-
-            $widgetKey = $pluginStudly . '/Widgets/' . $withoutExtension;
-            $importPath = $this->relativePath(dirname($this->cachePath), $file->getPathname());
-
-            $widgets[$widgetKey] = $importPath;
-        }
-
-        return $widgets;
-    }
-
-    /**
      * @return array<int, array{method: string, uri: string, name: ?string}>
      */
     private function routesFor(PluginInterface $plugin): array
@@ -139,14 +100,12 @@ final class FrontendManifestGenerator implements FrontendManifestGeneratorInterf
 
     /**
      * @param array<string, string> $pages
-     * @param array<string, string> $widgets
      * @param array<int, array{method: string, uri: string, name: ?string}> $routes
      * @param array<string, array<string, mixed>> $sidebar
      */
-    private function render(array $pages, array $widgets, array $routes, array $sidebar): string
+    private function render(array $pages, array $routes, array $sidebar): string
     {
         $pagesBlock = $this->importMapBlock($pages);
-        $widgetsBlock = $this->importMapBlock($widgets);
         $routesJson = json_encode($routes, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         $sidebarJson = json_encode((object) $sidebar, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
@@ -161,8 +120,6 @@ final class FrontendManifestGenerator implements FrontendManifestGeneratorInterf
         }
 
         export const pluginPages: Record<string, () => Promise<unknown>> = {{$pagesBlock}};
-
-        export const pluginWidgets: Record<string, () => Promise<unknown>> = {{$widgetsBlock}};
 
         export const pluginRoutes: PluginRoute[] = {$routesJson};
 

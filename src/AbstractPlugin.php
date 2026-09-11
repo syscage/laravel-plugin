@@ -89,11 +89,6 @@ abstract class AbstractPlugin implements PluginInterface
         return $this->manifest->sidebar();
     }
 
-    public function widgets(): array
-    {
-        return $this->manifest->widgets();
-    }
-
     public function authors(): array
     {
         return $this->manifest->authors();

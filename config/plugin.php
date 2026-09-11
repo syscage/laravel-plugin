@@ -90,10 +90,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | Locations of the various compiled caches produced by the framework:
-    | the discovered plugin manifest cache, the merged sidebar cache, the
-    | generated frontend manifest consumed by React/Vue/Inertia apps, the
-    | discovered dashboard widget cache, and the default dashboard layout
-    | cache.
+    | the discovered plugin manifest cache, the merged sidebar cache, and
+    | the generated frontend manifest consumed by React/Vue/Inertia apps.
     |
     */
 
@@ -101,9 +99,22 @@ return [
         'plugins' => base_path('bootstrap/cache/plugins.php'),
         'sidebar' => base_path('bootstrap/cache/sidebar.php'),
         'frontend' => base_path('bootstrap/cache/plugins.ts'),
-        'widgets' => base_path('bootstrap/cache/widgets.php'),
-        'dashboard' => base_path('bootstrap/cache/dashboard.php'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend Route Path
+    |--------------------------------------------------------------------------
+    |
+    | The host application's `wayfinder:generate` routes output directory.
+    | Whenever a directory under here belongs exclusively to one plugin's
+    | routes, the Plugin Frontend Route Linker moves it into that plugin's
+    | own `src/resources/js/routes`, leaving a re-export behind so existing
+    | imports keep working. See the Plugin Frontend Route Linker in the docs.
+    |
+    */
+
+    'frontend_routes_path' => resource_path('js/routes'),
 
     /*
     |--------------------------------------------------------------------------
@@ -144,33 +155,5 @@ return [
     */
 
     'public_path' => public_path('plugins'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Dashboard Widgets
-    |--------------------------------------------------------------------------
-    |
-    | Configuration for the plugin-driven dashboard widget system: the table
-    | and Eloquent model used to persist each user's personal widget layout,
-    | and an optional role resolver used by widget authorization.
-    |
-    | "model" may be swapped for your own subclass of
-    | `Syscage\Plugin\Models\DashboardWidgetRecord` (e.g. to add
-    | relationships or casts), the same way "plugin.model" can be swapped.
-    |
-    | "role_resolver" may be set to a callable of the shape
-    | `fn (Authenticatable $user, array $roles): bool` used to check a
-    | widget's `roles()` restriction. When left null, the framework falls
-    | back to a `hasAnyRole()`/`hasRole()` method on the user model, if one
-    | exists; a widget declaring roles that cannot be resolved either way is
-    | treated as unauthorized.
-    |
-    */
-
-    'widgets' => [
-        'table' => 'dashboard_widgets',
-        'model' => \Syscage\Plugin\Models\DashboardWidgetRecord::class,
-        'role_resolver' => null,
-    ],
 
 ];
