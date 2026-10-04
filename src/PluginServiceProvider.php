@@ -83,6 +83,7 @@ use Syscage\Plugin\Contracts\PluginPageResolverInterface;
 use Syscage\Plugin\Contracts\PluginRecordRepositoryInterface;
 use Syscage\Plugin\Contracts\PluginRegistryInterface;
 use Syscage\Plugin\Contracts\PluginRouteManagerInterface;
+use Syscage\Plugin\Contracts\PluginSeederManagerInterface;
 use Syscage\Plugin\Contracts\PluginSidebarManagerInterface;
 use Syscage\Plugin\Contracts\PluginTranslationManagerInterface;
 use Syscage\Plugin\Contracts\PluginViewManagerInterface;
@@ -164,6 +165,21 @@ final class PluginServiceProvider extends ServiceProvider
                     function (CommandFinished $event) use ($manager): void {
                         if ($event->command === 'wayfinder:generate' && $event->exitCode === 0) {
                             $this->app->make(PluginFrontendRouteLinkerInterface::class)->register($manager->enabled());
+                        }
+
+                        // Mirrors `migrate`: a plain `db:seed` (no explicit
+                        // --class, so not a plugin-targeted run) also seeds
+                        // every enabled plugin once the host has seeded.
+                        if (
+                            $event->command === 'db:seed'
+                            && $event->exitCode === 0
+                            && ! $event->input->hasParameterOption('--class')
+                            && $this->app->make('config')->get('plugin.seed_with_host', true)
+                        ) {
+                            $this->app->make(PluginSeederManagerInterface::class)->seedEnabled(
+                                $event->input->getParameterOption('--database') ?: null,
+                                $event->output,
+                            );
                         }
                     },
                 );
@@ -249,6 +265,7 @@ final class PluginServiceProvider extends ServiceProvider
         $this->app->singleton(PluginViewManagerInterface::class, PluginViewManager::class);
         $this->app->singleton(PluginTranslationManagerInterface::class, PluginTranslationManager::class);
         $this->app->singleton(PluginMigrationManagerInterface::class, PluginMigrationManager::class);
+        $this->app->singleton(PluginSeederManagerInterface::class, PluginSeederManager::class);
         $this->app->singleton(PluginConfigManagerInterface::class, PluginConfigManager::class);
         $this->app->singleton(PluginCommandManagerInterface::class, PluginCommandManager::class);
 

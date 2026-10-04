@@ -156,4 +156,18 @@ return [
 
     'public_path' => public_path('plugins'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Seed Plugins With The Host
+    |--------------------------------------------------------------------------
+    |
+    | When true, `php artisan db:seed` also runs every enabled plugin's own
+    | "Database\Seeders\DatabaseSeeder" after the host application's seeders,
+    | the same way `php artisan migrate` includes plugin migrations. Runs that
+    | pass an explicit --class (including `db:seed-plugin`) are never expanded.
+    |
+    */
+
+    'seed_with_host' => true,
+
 ];

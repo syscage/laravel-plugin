@@ -106,6 +106,8 @@ php artisan make:model-plugin blog-post Post -mfs
 php artisan make:controller-plugin blog-post PostController --resource
 php artisan migrate-plugin blog-post
 php artisan db:seed-plugin blog-post
+# or seed every enabled plugin
+php artisan db:seed-plugin
 php artisan route:list-plugin blog-post
 php artisan test-plugin blog-post
 ```
@@ -152,7 +154,7 @@ Every alias accepts `{plugin}` as its first argument (the plugin's alias or mani
 
 | Alias | Wraps |
 | --- | --- |
-| `db:seed-plugin` | `db:seed` (`--class` defaults to the plugin's own `Database\Seeders\DatabaseSeeder`) |
+| `db:seed-plugin` | `db:seed` (`--class` defaults to the plugin's own `Database\Seeders\DatabaseSeeder`; with no plugin argument, seeds every enabled plugin) |
 | `db:wipe-plugin` | `db:wipe` |
 
 **Framework/cache/queue/testing**:
@@ -171,7 +173,7 @@ Every alias accepts `{plugin}` as its first argument (the plugin's alias or mani
 
 > `config:cache-plugin`, `route:cache-plugin`, `view:cache-plugin`, `event:cache-plugin`, and `optimize-plugin` still require `{plugin}` for command-family consistency, but rebuild the shared, application-wide cache — they don't scope it to one plugin.
 
-`db:seed-plugin` relies on that `DatabaseSeeder` existing; `make:plugin` scaffolds an empty one for you at `src/database/seeders/DatabaseSeeder.php`. Plugin seeders are never run implicitly by the host app's own `php artisan db:seed` — call them explicitly from your host `DatabaseSeeder::run()` (e.g. `$this->call(\Plugins\BlogPost\Database\Seeders\DatabaseSeeder::class);`) if you want them included.
+`db:seed-plugin` relies on that `DatabaseSeeder` existing; `make:plugin` scaffolds an empty one for you at `src/database/seeders/DatabaseSeeder.php`. A plain `php artisan db:seed` also seeds every **enabled** plugin's `DatabaseSeeder` after the host's own seeders, just as `php artisan migrate` includes plugin migrations. A `db:seed` run with an explicit `--class` is never expanded, and you can turn this off with `'seed_with_host' => false` in `config/plugin.php`.
 
 ## Frontend integration
 
