@@ -7,6 +7,7 @@ namespace Syscage\Plugin\Tests\Feature;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Syscage\Plugin\Contracts\PluginSeederManagerInterface;
@@ -89,12 +90,38 @@ final class PluginSeederManagerTest extends TestCase
         $this->artisan('db:seed-plugin', ['--class' => 'Foo'])->assertFailed();
     }
 
-    private function createEnabledPluginWithSeeder(): string
+    public function test_db_seed_plugin_targets_the_given_plugin_on_every_call_in_one_process(): void
     {
-        $this->artisan('make:plugin', ['name' => 'BlogPlugin'])->assertSuccessful();
+        $this->createEnabledPluginWithSeeder();
+        $this->createEnabledPluginWithSeeder('ShopPlugin', 'shop-seeder-ran');
 
-        $namespace = 'SeederPlugins\\BlogPlugin\\Database\\Seeders';
-        (new Filesystem())->put($this->pluginsPath . '/blog-plugin/src/database/seeders/DatabaseSeeder.php', <<<PHP
+        $this->artisan('db:seed-plugin', ['plugin' => 'blog-plugin', '--force' => true])
+            ->assertSuccessful()
+            ->expectsOutputToContain('blog-seeder-ran');
+
+        $this->artisan('db:seed-plugin', ['plugin' => 'shop-plugin', '--force' => true])
+            ->assertSuccessful()
+            ->expectsOutputToContain('shop-seeder-ran');
+    }
+
+    public function test_db_seed_plugin_skips_a_plugin_without_a_database_seeder(): void
+    {
+        $alias = $this->createEnabledPluginWithSeeder('BarePlugin');
+        (new Filesystem())->delete($this->pluginsPath . "/{$alias}/src/database/seeders/DatabaseSeeder.php");
+
+        $this->artisan('db:seed-plugin', ['plugin' => $alias, '--force' => true])
+            ->assertSuccessful()
+            ->expectsOutputToContain('has no DatabaseSeeder to run');
+    }
+
+    private function createEnabledPluginWithSeeder(string $name = 'BlogPlugin', string $marker = 'blog-seeder-ran'): string
+    {
+        $alias = Str::kebab($name);
+
+        $this->artisan('make:plugin', ['name' => $name])->assertSuccessful();
+
+        $namespace = "SeederPlugins\\{$name}\\Database\\Seeders";
+        (new Filesystem())->put($this->pluginsPath . "/{$alias}/src/database/seeders/DatabaseSeeder.php", <<<PHP
         <?php
 
         declare(strict_types=1);
@@ -107,16 +134,16 @@ final class PluginSeederManagerTest extends TestCase
         {
             public function run(): void
             {
-                \$this->command->info('blog-seeder-ran');
+                \$this->command->info('{$marker}');
             }
         }
         PHP);
 
         $this->artisan('plugin:discover')->assertSuccessful();
         $this->artisan('migrate')->assertSuccessful();
-        $this->artisan('plugin:install', ['alias' => 'blog-plugin'])->assertSuccessful();
-        $this->artisan('plugin:enable', ['alias' => 'blog-plugin'])->assertSuccessful();
+        $this->artisan('plugin:install', ['alias' => $alias])->assertSuccessful();
+        $this->artisan('plugin:enable', ['alias' => $alias])->assertSuccessful();
 
-        return 'blog-plugin';
+        return $alias;
     }
 }

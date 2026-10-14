@@ -18,8 +18,6 @@ use Syscage\Plugin\Contracts\PluginManagerInterface;
  */
 trait ResolvesTargetPlugin
 {
-    private ?PluginInterface $resolvedTargetPlugin = null;
-
     /**
      * Prepend "plugin" for wrapped commands that build their definition
      * from the legacy $name + getArguments()/getOptions() pair.
@@ -74,21 +72,17 @@ trait ResolvesTargetPlugin
 
     protected function targetPlugin(): PluginInterface
     {
-        if ($this->resolvedTargetPlugin !== null) {
-            return $this->resolvedTargetPlugin;
-        }
-
         $manager = $this->laravel->make(PluginManagerInterface::class);
         $input = (string) $this->argument('plugin');
 
         if ($manager->has($input)) {
-            return $this->resolvedTargetPlugin = $manager->find($input);
+            return $manager->find($input);
         }
 
         $alias = Str::kebab($input);
 
         if ($manager->has($alias)) {
-            return $this->resolvedTargetPlugin = $manager->find($alias);
+            return $manager->find($alias);
         }
 
         throw new RuntimeException("No plugin registered with the alias [{$input}].");

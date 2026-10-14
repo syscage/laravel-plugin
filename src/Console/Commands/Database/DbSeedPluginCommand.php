@@ -35,8 +35,17 @@ final class DbSeedPluginCommand extends Command
 
         $plugin = $this->targetPlugin();
 
-        $class = $this->option('class')
-            ?? rtrim($plugin->namespace(), '\\') . '\\Database\\Seeders\\DatabaseSeeder';
+        $class = $this->option('class');
+
+        if ($class === null) {
+            $class = rtrim($plugin->namespace(), '\\') . '\\Database\\Seeders\\DatabaseSeeder';
+
+            if (! class_exists($class)) {
+                $this->components->info("Plugin [{$plugin->alias()}] has no DatabaseSeeder to run.");
+
+                return self::SUCCESS;
+            }
+        }
 
         return $this->call('db:seed', array_filter([
             '--class' => $class,
