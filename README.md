@@ -169,7 +169,7 @@ Every alias accepts `{plugin}` as its first argument (the plugin's alias or mani
 | `vendor:publish-plugin` | `vendor:publish` |
 | `optimize-plugin` | `optimize` |
 | `queue:work-plugin` | `queue:work` |
-| `test-plugin` | `test` (runs only that plugin's own `tests/` directory) |
+| `test-plugin` | `test` (runs only that plugin's own `src/tests/` directory) |
 
 > `config:cache-plugin`, `route:cache-plugin`, `view:cache-plugin`, `event:cache-plugin`, and `optimize-plugin` still require `{plugin}` for command-family consistency, but rebuild the shared, application-wide cache — they don't scope it to one plugin.
 

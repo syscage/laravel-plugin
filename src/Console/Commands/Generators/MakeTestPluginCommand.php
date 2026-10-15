@@ -25,6 +25,6 @@ final class MakeTestPluginCommand extends TestMakeCommand
     {
         $name = Str::replaceFirst($this->rootNamespace(), '', $name);
 
-        return $this->targetPlugin()->path('tests') . str_replace('\\', '/', $name) . '.php';
+        return $this->targetPlugin()->srcPath('tests') . str_replace('\\', '/', $name) . '.php';
     }
 }

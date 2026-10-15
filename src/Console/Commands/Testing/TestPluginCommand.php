@@ -11,7 +11,7 @@ use Symfony\Component\Process\Process;
 use Syscage\Plugin\Console\Commands\Concerns\ResolvesTargetPlugin;
 
 /**
- * Runs a plugin's own test suite (its "tests/" directory, as scaffolded by
+ * Runs a plugin's own test suite (its "src/tests/" directory, as scaffolded by
  * "make:test-plugin") through PHPUnit directly. A plugin's tests are not
  * part of the host application's own test suite, so this deliberately
  * runs a separate PHPUnit process rather than delegating to "artisan
@@ -30,7 +30,7 @@ final class TestPluginCommand extends Command
     public function handle(): int
     {
         $plugin = $this->targetPlugin();
-        $testsPath = $plugin->path('tests');
+        $testsPath = $plugin->srcPath('tests');
 
         if (! is_dir($testsPath)) {
             $this->components->error("No tests directory found for plugin [{$plugin->alias()}].");

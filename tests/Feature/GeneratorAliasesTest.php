@@ -216,13 +216,13 @@ final class GeneratorAliasesTest extends TestCase
         );
     }
 
-    public function test_make_test_plugin_writes_into_a_plugin_tests_directory(): void
+    public function test_make_test_plugin_writes_into_a_plugin_src_tests_directory(): void
     {
         $alias = $this->makePlugin();
 
         $this->artisan('make:test-plugin', ['plugin' => $alias, 'name' => 'ExampleTest'])->assertSuccessful();
 
-        $this->assertFileExists($this->pluginsPath . '/' . $alias . '/tests/Feature/ExampleTest.php');
+        $this->assertFileExists($this->pluginsPath . '/' . $alias . '/src/tests/Feature/ExampleTest.php');
     }
 
     public function test_make_migration_plugin_delegates_to_make_migration_with_the_plugin_path(): void
@@ -362,7 +362,7 @@ final class GeneratorAliasesTest extends TestCase
     {
         $alias = $this->makePlugin();
 
-        $testDir = $this->pluginsPath . '/' . $alias . '/tests/Unit';
+        $testDir = $this->pluginsPath . '/' . $alias . '/src/tests/Unit';
         (new Filesystem())->makeDirectory($testDir, recursive: true);
         (new Filesystem())->put($testDir . '/TrivialTest.php', <<<'PHP'
         <?php
