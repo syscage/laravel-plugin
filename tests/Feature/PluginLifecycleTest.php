@@ -42,20 +42,14 @@ final class PluginLifecycleTest extends TestCase
             'id' => null,
             'name' => 'DemoPlugin',
             'alias' => 'demo-plugin',
-            'description' => 'A fixture plugin used by the test suite.',
             'version' => '1.0.0',
             'provider' => 'Syscage\\Plugin\\Tests\\Fixtures\\DemoPlugin\\Providers\\DemoPluginServiceProvider',
             'namespace' => 'Syscage\\Plugin\\Tests\\Fixtures\\DemoPlugin',
-            'priority' => 50,
-            'enabled' => true,
             'requires' => [],
-            'conflicts' => [],
-            'permissions' => [],
-            'sidebar' => [],
             'authors' => [],
         ]));
 
-        $this->registry = new PluginRegistry();
+        $this->registry = new PluginRegistry(new PluginRecordRepository());
     }
 
     protected function tearDown(): void
@@ -81,7 +75,7 @@ final class PluginLifecycleTest extends TestCase
         return new PluginLifecycle(
             new PluginRecordRepository(),
             new PluginManifestRepository(new Filesystem()),
-            new PluginDependencyResolver(),
+            new PluginDependencyResolver(new PluginRecordRepository()),
             $this->registry,
             $this->app->make(Dispatcher::class),
             'plugin.json',
@@ -142,7 +136,7 @@ final class PluginLifecycleTest extends TestCase
         $lifecycle->uninstall($this->makePlugin());
     }
 
-    public function test_disable_then_enable_toggles_state_and_manifest(): void
+    public function test_disable_then_enable_toggles_the_record_state(): void
     {
         Event::fake([PluginDisabled::class, PluginEnabled::class]);
 
@@ -153,12 +147,10 @@ final class PluginLifecycleTest extends TestCase
         $lifecycle->disable($plugin);
 
         $this->assertDatabaseHas(config('plugin.table'), ['alias' => 'demo-plugin', 'enabled' => false]);
-        $this->assertFalse($this->makePlugin()->enabled());
 
         $lifecycle->enable($plugin);
 
         $this->assertDatabaseHas(config('plugin.table'), ['alias' => 'demo-plugin', 'enabled' => true]);
-        $this->assertTrue($this->makePlugin()->enabled());
 
         Event::assertDispatched(PluginDisabled::class);
         Event::assertDispatched(PluginEnabled::class);

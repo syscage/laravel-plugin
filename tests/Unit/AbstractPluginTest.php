@@ -48,32 +48,7 @@ final class AbstractPluginTest extends TestCase
                 return 'Plugins\\MyPlugin';
             }
 
-            public function priority(): int
-            {
-                return 100;
-            }
-
-            public function enabled(): bool
-            {
-                return true;
-            }
-
             public function requires(): array
-            {
-                return [];
-            }
-
-            public function conflicts(): array
-            {
-                return [];
-            }
-
-            public function permissions(): array
-            {
-                return [];
-            }
-
-            public function sidebar(): array
             {
                 return [];
             }
@@ -102,8 +77,6 @@ final class AbstractPluginTest extends TestCase
 
         $this->assertSame('MyPlugin', $plugin->name());
         $this->assertSame('my-plugin', $plugin->alias());
-        $this->assertTrue($plugin->enabled());
-        $this->assertSame(100, $plugin->priority());
     }
 
     public function test_it_computes_paths_from_the_standard_layout(): void

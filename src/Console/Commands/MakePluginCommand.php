@@ -72,9 +72,12 @@ final class MakePluginCommand extends Command
         $files->put($path . '/src/routes/console.php', $stubs->render('routes.console.stub', ['name' => $name]));
         $files->put($path . '/src/config/config.php', $stubs->render('config.stub', []));
 
-        $files->put($path . '/src/database/seeders/DatabaseSeeder.php', $stubs->render('DatabaseSeeder.stub', [
-            'namespace' => $namespace,
-        ]));
+        foreach (['DatabaseSeeder', 'PermissionSeeder', 'SideBarSeeder'] as $seeder) {
+            $files->put($path . '/src/database/seeders/' . $seeder . '.php', $stubs->render($seeder . '.stub', [
+                'namespace' => $namespace,
+                'alias' => $alias,
+            ]));
+        }
 
         $files->put($path . '/README.md', $stubs->render('README.stub', [
             'name' => $name,
@@ -86,16 +89,10 @@ final class MakePluginCommand extends Command
             'id' => null,
             'name' => $name,
             'alias' => $alias,
-            'description' => $description,
             'version' => '1.0.0',
             'provider' => $provider,
             'namespace' => $namespace,
-            'priority' => 100,
-            'enabled' => true,
             'requires' => [],
-            'conflicts' => [],
-            'permissions' => [],
-            'sidebar' => [],
             'authors' => $author !== null ? [['name' => $author]] : [],
         ]));
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Syscage\Plugin\Tests\Feature;
 
 use Syscage\Plugin\Contracts\PluginManagerInterface;
+use Syscage\Plugin\Contracts\PluginRecordRepositoryInterface;
 use Syscage\Plugin\Tests\TestCase;
 
 /**
@@ -27,6 +28,28 @@ final class FullPluginBootTest extends TestCase
         $app['config']->set('plugin.plugins_path', realpath(__DIR__ . '/../Fixtures/plugins'));
         $app['config']->set('plugin.cache.plugins', $this->cacheDirectory . '/plugins.php');
         $app['config']->set('plugin.cache.sidebar', $this->cacheDirectory . '/sidebar.php');
+        $app['config']->set('plugin.public_path', $this->cacheDirectory . '/public');
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Plugins load only when their database record is enabled, and the
+        // tables do not exist yet when the framework first boots.
+        foreach (['demo-plugin', 'resource-plugin'] as $alias) {
+            $this->app->make(PluginRecordRepositoryInterface::class)->create([
+                'name' => $alias,
+                'alias' => $alias,
+                'version' => '1.0.0',
+                'provider' => $alias,
+                'namespace' => $alias,
+                'enabled' => true,
+                'path' => $alias,
+            ]);
+        }
+
+        $this->app->make(PluginManagerInterface::class)->boot(fresh: true);
     }
 
     protected function tearDown(): void

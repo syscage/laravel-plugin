@@ -337,6 +337,7 @@ final class GeneratorAliasesTest extends TestCase
         // which (within a single already-booted process) requires
         // re-running the full manager boot cycle — exactly what a fresh
         // "php artisan" process would do automatically on its next run.
+        $this->artisan('plugin:install', ['alias' => $alias])->assertSuccessful();
         $this->app->make(\Syscage\Plugin\Contracts\PluginManagerInterface::class)->boot(fresh: true);
 
         $this->artisan('route:list-plugin', ['plugin' => $alias])

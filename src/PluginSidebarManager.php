@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Syscage\Plugin;
 
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Filesystem\Filesystem;
 use Syscage\Plugin\Contracts\PluginInterface;
 use Syscage\Plugin\Contracts\PluginSidebarManagerInterface;
@@ -14,6 +15,7 @@ use Syscage\Plugin\Contracts\PluginSidebarManagerInterface;
 final class PluginSidebarManager implements PluginSidebarManagerInterface
 {
     public function __construct(
+        private readonly ConnectionInterface $db,
         private readonly Filesystem $files,
         private readonly string $cachePath,
     ) {
@@ -23,10 +25,13 @@ final class PluginSidebarManager implements PluginSidebarManagerInterface
     {
         $sidebar = [];
 
-        foreach ($plugins as $alias => $plugin) {
-            if ($plugin->sidebar() !== []) {
-                $sidebar[$alias] = $plugin->sidebar();
-            }
+        $rows = $this->db->table('sidebar')
+            ->whereIn('plugin', array_keys($plugins))
+            ->orderBy('sort')
+            ->get();
+
+        foreach ($rows as $row) {
+            $sidebar[$row->plugin][] = (array) $row;
         }
 
         return $sidebar;

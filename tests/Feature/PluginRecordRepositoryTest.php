@@ -46,6 +46,15 @@ final class PluginRecordRepositoryTest extends TestCase
         $this->assertNull($repository->findByAlias('missing-plugin'));
     }
 
+    public function test_enabled_aliases_lists_only_enabled_records(): void
+    {
+        $repository = new PluginRecordRepository();
+        $repository->create($this->attributes(['alias' => 'on', 'enabled' => true]));
+        $repository->create($this->attributes(['alias' => 'off', 'enabled' => false]));
+
+        $this->assertSame(['on'], $repository->enabledAliases());
+    }
+
     public function test_exists_reflects_whether_a_record_is_present(): void
     {
         $repository = new PluginRecordRepository();

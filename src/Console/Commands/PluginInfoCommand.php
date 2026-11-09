@@ -32,16 +32,12 @@ final class PluginInfoCommand extends Command
 
         $this->components->twoColumnDetail('Name', $plugin->name());
         $this->components->twoColumnDetail('Alias', $plugin->alias());
-        $this->components->twoColumnDetail('Description', $plugin->description() ?: '—');
         $this->components->twoColumnDetail('Version', $plugin->version());
         $this->components->twoColumnDetail('Namespace', $plugin->namespace());
         $this->components->twoColumnDetail('Provider', $plugin->provider());
-        $this->components->twoColumnDetail('Priority', (string) $plugin->priority());
-        $this->components->twoColumnDetail('Enabled', $plugin->enabled() ? 'yes' : 'no');
+        $this->components->twoColumnDetail('Enabled', $record?->enabled ? 'yes' : 'no');
         $this->components->twoColumnDetail('Path', $plugin->path());
         $this->components->twoColumnDetail('Requires', $this->summarize($plugin->requires()));
-        $this->components->twoColumnDetail('Conflicts', $this->summarize($plugin->conflicts()));
-        $this->components->twoColumnDetail('Permissions', $this->summarize($plugin->permissions()));
         $this->components->twoColumnDetail('Authors', $this->summarize($plugin->authors()));
 
         if ($record !== null) {

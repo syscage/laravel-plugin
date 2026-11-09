@@ -39,11 +39,6 @@ abstract class AbstractPlugin implements PluginInterface
         return $this->manifest->alias();
     }
 
-    public function description(): string
-    {
-        return $this->manifest->description();
-    }
-
     public function version(): string
     {
         return $this->manifest->version();
@@ -59,34 +54,9 @@ abstract class AbstractPlugin implements PluginInterface
         return $this->manifest->namespace();
     }
 
-    public function priority(): int
-    {
-        return $this->manifest->priority();
-    }
-
-    public function enabled(): bool
-    {
-        return $this->manifest->enabled();
-    }
-
     public function requires(): array
     {
         return $this->manifest->requires();
-    }
-
-    public function conflicts(): array
-    {
-        return $this->manifest->conflicts();
-    }
-
-    public function permissions(): array
-    {
-        return $this->manifest->permissions();
-    }
-
-    public function sidebar(): array
-    {
-        return $this->manifest->sidebar();
     }
 
     public function authors(): array

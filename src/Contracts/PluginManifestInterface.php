@@ -25,11 +25,6 @@ interface PluginManifestInterface
     public function alias(): string;
 
     /**
-     * The short description of the plugin's purpose.
-     */
-    public function description(): string;
-
-    /**
      * The current plugin version, following Semantic Versioning.
      */
     public function version(): string;
@@ -45,42 +40,11 @@ interface PluginManifestInterface
     public function namespace(): string;
 
     /**
-     * The plugin's loading priority. Lower values load first.
-     */
-    public function priority(): int;
-
-    /**
-     * Whether the plugin should be loaded by the framework.
-     */
-    public function enabled(): bool;
-
-    /**
      * The plugins (and optional version constraints) this plugin requires.
      *
      * @return array<int, array<string, mixed>>
      */
     public function requires(): array;
-
-    /**
-     * The plugin aliases that cannot be enabled at the same time as this plugin.
-     *
-     * @return array<int, string>
-     */
-    public function conflicts(): array;
-
-    /**
-     * The permissions automatically registered during installation.
-     *
-     * @return array<int, string>
-     */
-    public function permissions(): array;
-
-    /**
-     * The navigation items this plugin contributes to the merged sidebar manifest.
-     *
-     * @return array<string, mixed>
-     */
-    public function sidebar(): array;
 
     /**
      * The plugin's authors and maintainers.

@@ -8,7 +8,6 @@ use Illuminate\Console\Command;
 use Syscage\Plugin\Console\Commands\Concerns\ResolvesPlugin;
 use Syscage\Plugin\Contracts\PluginLifecycleInterface;
 use Syscage\Plugin\Contracts\PluginManagerInterface;
-use Syscage\Plugin\Exceptions\ConflictingPluginException;
 use Syscage\Plugin\Exceptions\MissingPluginDependencyException;
 use Syscage\Plugin\Exceptions\PluginAlreadyInstalledException;
 
@@ -34,7 +33,7 @@ final class PluginInstallCommand extends Command
 
         try {
             $lifecycle->install($plugin);
-        } catch (PluginAlreadyInstalledException|MissingPluginDependencyException|ConflictingPluginException $exception) {
+        } catch (PluginAlreadyInstalledException|MissingPluginDependencyException $exception) {
             $this->components->error($exception->getMessage());
 
             return self::FAILURE;

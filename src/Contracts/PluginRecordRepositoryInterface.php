@@ -48,6 +48,14 @@ interface PluginRecordRepositoryInterface
     public function delete(PluginRecord $record): void;
 
     /**
+     * The aliases of every installed plugin that is currently enabled.
+     * Returns an empty list when the plugins table does not exist yet.
+     *
+     * @return array<int, string>
+     */
+    public function enabledAliases(): array;
+
+    /**
      * All plugin database records.
      *
      * @return Collection<int, PluginRecord>

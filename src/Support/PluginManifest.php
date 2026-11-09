@@ -24,16 +24,10 @@ final class PluginManifest implements PluginManifestInterface
         private readonly ?string $id,
         private readonly string $name,
         private readonly string $alias,
-        private readonly string $description,
         private readonly string $version,
         private readonly string $provider,
         private readonly string $namespace,
-        private readonly int $priority,
-        private readonly bool $enabled,
         private readonly array $requires,
-        private readonly array $conflicts,
-        private readonly array $permissions,
-        private readonly array $sidebar,
         private readonly array $authors,
         private readonly ?string $tablePrefix,
     ) {
@@ -58,16 +52,10 @@ final class PluginManifest implements PluginManifestInterface
             id: isset($data['id']) && $data['id'] !== '' ? (string) $data['id'] : null,
             name: (string) $data['name'],
             alias: (string) $data['alias'],
-            description: (string) ($data['description'] ?? ''),
             version: (string) $data['version'],
             provider: (string) $data['provider'],
             namespace: (string) $data['namespace'],
-            priority: (int) ($data['priority'] ?? 100),
-            enabled: (bool) ($data['enabled'] ?? true),
             requires: (array) ($data['requires'] ?? []),
-            conflicts: (array) ($data['conflicts'] ?? []),
-            permissions: (array) ($data['permissions'] ?? []),
-            sidebar: (array) ($data['sidebar'] ?? []),
             authors: (array) ($data['authors'] ?? []),
             tablePrefix: isset($data['table_prefix']) && $data['table_prefix'] !== ''
                 ? (string) $data['table_prefix']
@@ -90,11 +78,6 @@ final class PluginManifest implements PluginManifestInterface
         return $this->alias;
     }
 
-    public function description(): string
-    {
-        return $this->description;
-    }
-
     public function version(): string
     {
         return $this->version;
@@ -110,34 +93,9 @@ final class PluginManifest implements PluginManifestInterface
         return $this->namespace;
     }
 
-    public function priority(): int
-    {
-        return $this->priority;
-    }
-
-    public function enabled(): bool
-    {
-        return $this->enabled;
-    }
-
     public function requires(): array
     {
         return $this->requires;
-    }
-
-    public function conflicts(): array
-    {
-        return $this->conflicts;
-    }
-
-    public function permissions(): array
-    {
-        return $this->permissions;
-    }
-
-    public function sidebar(): array
-    {
-        return $this->sidebar;
     }
 
     public function authors(): array
@@ -159,14 +117,6 @@ final class PluginManifest implements PluginManifestInterface
     }
 
     /**
-     * Return a copy of this manifest with a different enabled state.
-     */
-    public function withEnabled(bool $enabled): self
-    {
-        return $this->with(enabled: $enabled);
-    }
-
-    /**
      * Return a copy of this manifest with a different version.
      */
     public function withVersion(string $version): self
@@ -176,23 +126,16 @@ final class PluginManifest implements PluginManifestInterface
 
     private function with(
         ?string $id = null,
-        ?bool $enabled = null,
         ?string $version = null,
     ): self {
         return new self(
             id: $id ?? $this->id,
             name: $this->name,
             alias: $this->alias,
-            description: $this->description,
             version: $version ?? $this->version,
             provider: $this->provider,
             namespace: $this->namespace,
-            priority: $this->priority,
-            enabled: $enabled ?? $this->enabled,
             requires: $this->requires,
-            conflicts: $this->conflicts,
-            permissions: $this->permissions,
-            sidebar: $this->sidebar,
             authors: $this->authors,
             tablePrefix: $this->tablePrefix,
         );
@@ -204,16 +147,10 @@ final class PluginManifest implements PluginManifestInterface
             'id' => $this->id,
             'name' => $this->name,
             'alias' => $this->alias,
-            'description' => $this->description,
             'version' => $this->version,
             'provider' => $this->provider,
             'namespace' => $this->namespace,
-            'priority' => $this->priority,
-            'enabled' => $this->enabled,
             'requires' => $this->requires,
-            'conflicts' => $this->conflicts,
-            'permissions' => $this->permissions,
-            'sidebar' => $this->sidebar,
             'authors' => $this->authors,
             'table_prefix' => $this->tablePrefix,
         ];

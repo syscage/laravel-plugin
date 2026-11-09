@@ -5,34 +5,45 @@ declare(strict_types=1);
 namespace Syscage\Plugin\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use Syscage\Plugin\Contracts\PluginRecordRepositoryInterface;
 use Syscage\Plugin\Exceptions\CircularPluginDependencyException;
-use Syscage\Plugin\Exceptions\ConflictingPluginException;
 use Syscage\Plugin\Exceptions\MissingPluginDependencyException;
 use Syscage\Plugin\PluginDependencyResolver;
 use Syscage\Plugin\Tests\Support\FakePlugin;
 
 final class PluginDependencyResolverTest extends TestCase
 {
-    public function test_it_orders_independent_plugins_by_priority(): void
+    /**
+     * @param array<int, string> $enabled
+     */
+    private function makeResolver(array $enabled = ['a', 'b', 'c', 'core', 'shop']): PluginDependencyResolver
     {
-        $resolver = new PluginDependencyResolver();
+        $records = $this->createStub(PluginRecordRepositoryInterface::class);
+        $records->method('enabledAliases')->willReturn($enabled);
+
+        return new PluginDependencyResolver($records);
+    }
+
+    public function test_it_orders_independent_plugins_by_alias(): void
+    {
+        $resolver = $this->makeResolver();
 
         $plugins = [
-            'b' => new FakePlugin('b', priority: 200),
-            'a' => new FakePlugin('a', priority: 10),
-            'c' => new FakePlugin('c', priority: 100),
+            'b' => new FakePlugin('b'),
+            'a' => new FakePlugin('a'),
+            'c' => new FakePlugin('c'),
         ];
 
-        $this->assertSame(['a', 'c', 'b'], array_keys($resolver->resolve($plugins)));
+        $this->assertSame(['a', 'b', 'c'], array_keys($resolver->resolve($plugins)));
     }
 
     public function test_it_orders_dependencies_before_dependents(): void
     {
-        $resolver = new PluginDependencyResolver();
+        $resolver = $this->makeResolver();
 
         $plugins = [
-            'shop' => new FakePlugin('shop', priority: 10, requires: ['core']),
-            'core' => new FakePlugin('core', priority: 500),
+            'shop' => new FakePlugin('shop', requires: ['core']),
+            'core' => new FakePlugin('core'),
         ];
 
         $this->assertSame(['core', 'shop'], array_keys($resolver->resolve($plugins)));
@@ -40,7 +51,7 @@ final class PluginDependencyResolverTest extends TestCase
 
     public function test_it_throws_when_a_required_plugin_is_missing(): void
     {
-        $resolver = new PluginDependencyResolver();
+        $resolver = $this->makeResolver();
 
         $plugins = [
             'shop' => new FakePlugin('shop', requires: ['core']),
@@ -53,11 +64,11 @@ final class PluginDependencyResolverTest extends TestCase
 
     public function test_it_throws_when_a_required_plugin_is_disabled(): void
     {
-        $resolver = new PluginDependencyResolver();
+        $resolver = $this->makeResolver(['shop']);
 
         $plugins = [
             'shop' => new FakePlugin('shop', requires: ['core']),
-            'core' => new FakePlugin('core', enabled: false),
+            'core' => new FakePlugin('core'),
         ];
 
         $this->expectException(MissingPluginDependencyException::class);
@@ -67,7 +78,7 @@ final class PluginDependencyResolverTest extends TestCase
 
     public function test_it_validates_version_constraints(): void
     {
-        $resolver = new PluginDependencyResolver();
+        $resolver = $this->makeResolver();
 
         $plugins = [
             'shop' => new FakePlugin('shop', requires: [['alias' => 'core', 'version' => '^2.0']]),
@@ -81,7 +92,7 @@ final class PluginDependencyResolverTest extends TestCase
 
     public function test_it_accepts_satisfied_version_constraints(): void
     {
-        $resolver = new PluginDependencyResolver();
+        $resolver = $this->makeResolver();
 
         $plugins = [
             'shop' => new FakePlugin('shop', requires: [['alias' => 'core', 'version' => '^2.0']]),
@@ -91,23 +102,9 @@ final class PluginDependencyResolverTest extends TestCase
         $this->assertSame(['core', 'shop'], array_keys($resolver->resolve($plugins)));
     }
 
-    public function test_it_throws_on_conflicting_plugins(): void
-    {
-        $resolver = new PluginDependencyResolver();
-
-        $plugins = [
-            'shop' => new FakePlugin('shop', conflicts: ['legacy-shop']),
-            'legacy-shop' => new FakePlugin('legacy-shop'),
-        ];
-
-        $this->expectException(ConflictingPluginException::class);
-
-        $resolver->resolve($plugins);
-    }
-
     public function test_it_throws_on_circular_dependencies(): void
     {
-        $resolver = new PluginDependencyResolver();
+        $resolver = $this->makeResolver();
 
         $plugins = [
             'a' => new FakePlugin('a', requires: ['b']),

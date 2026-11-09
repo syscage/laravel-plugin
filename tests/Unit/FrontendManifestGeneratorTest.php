@@ -37,12 +37,11 @@ final class FrontendManifestGeneratorTest extends TestCase
         parent::tearDown();
     }
 
-    private function makePlugin(array $sidebar = []): FakePlugin
+    private function makePlugin(): FakePlugin
     {
         return new FakePlugin(
             alias: 'demo-plugin',
             basePath: $this->pluginPath,
-            sidebarValue: $sidebar,
         );
     }
 
@@ -82,18 +81,5 @@ final class FrontendManifestGeneratorTest extends TestCase
 
         $this->assertStringContainsString('"uri": "demo-plugin/dashboard"', $contents);
         $this->assertStringContainsString('"name": "demo-plugin.dashboard"', $contents);
-    }
-
-    public function test_it_includes_non_empty_sidebars(): void
-    {
-        $router = new Router(new Dispatcher());
-        $generator = new FrontendManifestGenerator(new Filesystem(), $router, new PluginRouteFinder(), $this->cachePath);
-
-        $contents = $generator->generate([
-            'demo-plugin' => $this->makePlugin(['label' => 'Demo', 'icon' => 'cube']),
-        ]);
-
-        $this->assertStringContainsString('"demo-plugin"', $contents);
-        $this->assertStringContainsString('"label": "Demo"', $contents);
     }
 }

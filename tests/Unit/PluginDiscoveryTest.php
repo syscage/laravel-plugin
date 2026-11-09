@@ -6,6 +6,7 @@ namespace Syscage\Plugin\Tests\Unit;
 
 use Illuminate\Filesystem\Filesystem;
 use PHPUnit\Framework\TestCase;
+use Syscage\Plugin\Contracts\PluginRecordRepositoryInterface;
 use Syscage\Plugin\PluginAutoloader;
 use Syscage\Plugin\PluginCache;
 use Syscage\Plugin\PluginDiscovery;
@@ -26,7 +27,7 @@ final class PluginDiscoveryTest extends TestCase
         parent::setUp();
 
         $this->cachePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('plugin-discovery-', true) . '.php';
-        $this->registry = new PluginRegistry();
+        $this->registry = new PluginRegistry($this->createStub(PluginRecordRepositoryInterface::class));
 
         $this->discovery = new PluginDiscovery(
             new Filesystem(),

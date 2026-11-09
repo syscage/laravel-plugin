@@ -19,16 +19,10 @@ final class PluginManifestTest extends TestCase
             'id' => '1ca65e6b-51dc-40e8-a272-964f5d3cd5a0',
             'name' => 'MyPlugin',
             'alias' => 'my-plugin',
-            'description' => 'MyPlugin Integration',
             'version' => '1.0.0',
             'provider' => 'Plugins\\MyPlugin\\Providers\\MyPluginServiceProvider',
             'namespace' => 'Plugins\\MyPlugin',
-            'priority' => 100,
-            'enabled' => true,
             'requires' => [],
-            'conflicts' => [],
-            'permissions' => [],
-            'sidebar' => [],
             'authors' => [],
             'table_prefix' => null,
         ];
@@ -55,9 +49,6 @@ final class PluginManifestTest extends TestCase
         ]);
 
         $this->assertNull($manifest->id());
-        $this->assertSame('', $manifest->description());
-        $this->assertSame(100, $manifest->priority());
-        $this->assertTrue($manifest->enabled());
         $this->assertSame([], $manifest->requires());
         $this->assertNull($manifest->tablePrefix());
     }
@@ -88,14 +79,5 @@ final class PluginManifestTest extends TestCase
 
         $this->assertSame('1ca65e6b-51dc-40e8-a272-964f5d3cd5a0', $manifest->id());
         $this->assertSame('new-id', $updated->id());
-    }
-
-    public function test_with_enabled_toggles_the_enabled_flag(): void
-    {
-        $manifest = PluginManifest::fromArray($this->validData());
-        $disabled = $manifest->withEnabled(false);
-
-        $this->assertTrue($manifest->enabled());
-        $this->assertFalse($disabled->enabled());
     }
 }
