@@ -24,7 +24,6 @@ final class PluginManifestTest extends TestCase
             'namespace' => 'Plugins\\MyPlugin',
             'requires' => [],
             'authors' => [],
-            'table_prefix' => null,
         ];
     }
 

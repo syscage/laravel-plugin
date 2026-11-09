@@ -152,7 +152,8 @@ final class PluginManifest implements PluginManifestInterface
             'namespace' => $this->namespace,
             'requires' => $this->requires,
             'authors' => $this->authors,
-            'table_prefix' => $this->tablePrefix,
+            // Omitted when null: absent already means "use the global default".
+            ...($this->tablePrefix !== null ? ['table_prefix' => $this->tablePrefix] : []),
         ];
     }
 }
