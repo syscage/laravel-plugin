@@ -30,17 +30,18 @@ final class PluginListCommand extends Command
         $rows = [];
 
         foreach ($plugins as $plugin) {
+            $record = $records->findByAlias($plugin->alias());
+
             $rows[] = [
                 $plugin->alias(),
                 $plugin->name(),
                 $plugin->version(),
-                (string) $plugin->priority(),
-                $plugin->enabled() ? 'yes' : 'no',
-                $records->exists($plugin->alias()) ? 'yes' : 'no',
+                $record?->enabled ? 'yes' : 'no',
+                $record !== null ? 'yes' : 'no',
             ];
         }
 
-        $this->table(['Alias', 'Name', 'Version', 'Priority', 'Enabled', 'Installed'], $rows);
+        $this->table(['Alias', 'Name', 'Version', 'Enabled', 'Installed'], $rows);
 
         return self::SUCCESS;
     }

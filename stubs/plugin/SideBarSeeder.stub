@@ -1,0 +1,63 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }}\Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+final class SideBarSeeder extends Seeder
+{
+    private const PLUGIN = '{{ alias }}';
+
+    /**
+     * The sidebar items this plugin contributes. Each item accepts: label,
+     * href, icon, icon_provider (tabler, lucide, ...), position, permissions
+     * and children (nested items).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function items(): array
+    {
+        return [];
+    }
+
+    /**
+     * Seed the plugin's sidebar items, replacing any it seeded before.
+     */
+    public function run(): void
+    {
+        DB::table('sidebar')->where('plugin', self::PLUGIN)->delete();
+
+        $this->insert($this->items(), null);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $items
+     */
+    private function insert(array $items, ?string $parentId): void
+    {
+        foreach (array_values($items) as $sort => $item) {
+            $id = (string) Str::uuid();
+
+            DB::table('sidebar')->insert([
+                'id' => $id,
+                'parent_id' => $parentId,
+                'plugin' => self::PLUGIN,
+                'label' => $item['label'],
+                'href' => $item['href'] ?? null,
+                'icon' => $item['icon'] ?? null,
+                'icon_provider' => $item['icon_provider'] ?? null,
+                'position' => $item['position'] ?? 'top',
+                'permissions' => isset($item['permissions']) ? json_encode($item['permissions']) : null,
+                'sort' => $sort,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $this->insert($item['children'] ?? [], $id);
+        }
+    }
+}

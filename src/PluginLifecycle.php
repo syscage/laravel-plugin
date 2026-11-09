@@ -55,14 +55,12 @@ final class PluginLifecycle implements PluginLifecycleInterface
         $record = $this->records->create([
             'name' => $plugin->name(),
             'alias' => $plugin->alias(),
-            'description' => $plugin->description(),
             'version' => $plugin->version(),
             'provider' => $plugin->provider(),
             'namespace' => $plugin->namespace(),
-            'priority' => $plugin->priority(),
-            'enabled' => $plugin->enabled(),
+            'enabled' => true,
             'installed_at' => now(),
-            'enabled_at' => $plugin->enabled() ? now() : null,
+            'enabled_at' => now(),
             'path' => $plugin->path(),
             'hash' => PluginHasher::hash($plugin),
         ]);
@@ -102,8 +100,6 @@ final class PluginLifecycle implements PluginLifecycleInterface
             'disabled_at' => null,
         ]);
 
-        $this->writeManifest($plugin, fn (PluginManifest $manifest): PluginManifest => $manifest->withEnabled(true));
-
         $plugin->enable();
 
         $this->events->dispatch(new PluginEnabled($plugin));
@@ -119,8 +115,6 @@ final class PluginLifecycle implements PluginLifecycleInterface
             'enabled' => false,
             'disabled_at' => now(),
         ]);
-
-        $this->writeManifest($plugin, fn (PluginManifest $manifest): PluginManifest => $manifest->withEnabled(false));
 
         $plugin->disable();
 
@@ -152,16 +146,6 @@ final class PluginLifecycle implements PluginLifecycleInterface
     private function syncManifest(PluginInterface $plugin, PluginRecord $record): void
     {
         $manifest = PluginManifest::fromArray($plugin->toArray())->withId($record->uuid);
-
-        $this->manifests->write($this->manifestPath($plugin), $manifest);
-    }
-
-    /**
-     * @param callable(PluginManifest): PluginManifest $mutate
-     */
-    private function writeManifest(PluginInterface $plugin, callable $mutate): void
-    {
-        $manifest = $mutate(PluginManifest::fromArray($plugin->toArray()));
 
         $this->manifests->write($this->manifestPath($plugin), $manifest);
     }

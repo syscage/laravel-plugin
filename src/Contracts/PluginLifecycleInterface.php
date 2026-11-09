@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Syscage\Plugin\Contracts;
 
-use Syscage\Plugin\Exceptions\ConflictingPluginException;
 use Syscage\Plugin\Exceptions\MissingPluginDependencyException;
 use Syscage\Plugin\Exceptions\PluginAlreadyInstalledException;
 use Syscage\Plugin\Exceptions\PluginNotInstalledException;
@@ -20,7 +19,6 @@ interface PluginLifecycleInterface
     /**
      * @throws PluginAlreadyInstalledException
      * @throws MissingPluginDependencyException
-     * @throws ConflictingPluginException
      */
     public function install(PluginInterface $plugin): void;
 
@@ -32,7 +30,6 @@ interface PluginLifecycleInterface
     /**
      * @throws PluginNotInstalledException
      * @throws MissingPluginDependencyException
-     * @throws ConflictingPluginException
      */
     public function enable(PluginInterface $plugin): void;
 

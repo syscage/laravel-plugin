@@ -88,14 +88,19 @@ final class MakePluginCommandTest extends TestCase
         $this->assertNull($manifest['id']);
         $this->assertSame('BlogPlugin', $manifest['name']);
         $this->assertSame('blog-plugin', $manifest['alias']);
-        $this->assertSame('Blog Integration', $manifest['description']);
         $this->assertSame('1.0.0', $manifest['version']);
         $this->assertSame('GeneratedPlugins\\BlogPlugin', $manifest['namespace']);
         $this->assertSame(
             'GeneratedPlugins\\BlogPlugin\\Providers\\BlogPluginPluginServiceProvider',
             $manifest['provider'],
         );
-        $this->assertTrue($manifest['enabled']);
+        foreach (['description', 'priority', 'enabled', 'conflicts', 'permissions', 'sidebar'] as $removed) {
+            $this->assertArrayNotHasKey($removed, $manifest);
+        }
+
+        foreach (['DatabaseSeeder', 'PermissionSeeder', 'SideBarSeeder'] as $seeder) {
+            $this->assertFileExists($this->pluginsPath . "/blog-plugin/src/database/seeders/{$seeder}.php");
+        }
     }
 
     public function test_the_generated_plugin_class_is_immediately_discoverable(): void

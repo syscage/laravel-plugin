@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Syscage\Plugin;
 
 use Illuminate\Support\ServiceProvider;
+use Syscage\Plugin\Contracts\HookManagerInterface;
 use Syscage\Plugin\Contracts\PluginAssetManagerInterface;
 use Syscage\Plugin\Contracts\PluginCommandManagerInterface;
 use Syscage\Plugin\Contracts\PluginConfigManagerInterface;
@@ -50,6 +51,16 @@ abstract class PluginServiceProviderBase extends ServiceProvider
         $this->app->make(PluginMigrationManagerInterface::class)->register($plugin);
         $this->app->make(PluginAssetManagerInterface::class)->register($plugin);
         $this->app->make(PluginCommandManagerInterface::class)->register($plugin);
+    }
+
+    /**
+     * The hook manager, for registering this plugin's hooks. Pass
+     * `$this->plugin()->alias()` as the `plugin` argument so the hooks are
+     * removed when the plugin is disabled or uninstalled.
+     */
+    protected function hooks(): HookManagerInterface
+    {
+        return $this->app->make(HookManagerInterface::class);
     }
 
     /**

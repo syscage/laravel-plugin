@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }}\Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+final class PermissionSeeder extends Seeder
+{
+    /**
+     * The permissions this plugin registers, e.g. "{{ alias }}.view".
+     *
+     * @var array<int, string>
+     */
+    private const PERMISSIONS = [];
+
+    /**
+     * Seed the plugin's permissions.
+     *
+     * Persist self::PERMISSIONS with your application's permission store
+     * (for example spatie/laravel-permission's Permission::findOrCreate()).
+     */
+    public function run(): void
+    {
+        //
+    }
+}

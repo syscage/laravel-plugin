@@ -8,16 +8,21 @@ use Composer\Semver\Semver;
 use InvalidArgumentException;
 use Syscage\Plugin\Contracts\PluginDependencyResolverInterface;
 use Syscage\Plugin\Contracts\PluginInterface;
+use Syscage\Plugin\Contracts\PluginRecordRepositoryInterface;
 use Syscage\Plugin\Exceptions\CircularPluginDependencyException;
-use Syscage\Plugin\Exceptions\ConflictingPluginException;
 use Syscage\Plugin\Exceptions\MissingPluginDependencyException;
 
 /**
- * Resolves plugin load order from each plugin's "requires"/"conflicts"
- * manifest entries using a priority-stable topological sort.
+ * Resolves plugin load order from each plugin's "requires" manifest entry
+ * using an alias-stable topological sort.
  */
 final class PluginDependencyResolver implements PluginDependencyResolverInterface
 {
+    public function __construct(
+        private readonly PluginRecordRepositoryInterface $records,
+    ) {
+    }
+
     public function resolve(array $plugins): array
     {
         foreach ($plugins as $plugin) {
@@ -29,11 +34,13 @@ final class PluginDependencyResolver implements PluginDependencyResolverInterfac
 
     public function validate(PluginInterface $plugin, array $plugins): void
     {
+        $enabled = $this->records->enabledAliases();
+
         foreach ($plugin->requires() as $requirement) {
             $required = $this->normalize($requirement);
             $dependency = $plugins[$required['alias']] ?? null;
 
-            if ($dependency === null || ! $dependency->enabled()) {
+            if ($dependency === null || ! in_array($required['alias'], $enabled, true)) {
                 throw MissingPluginDependencyException::notPresent($plugin->alias(), $required['alias']);
             }
 
@@ -47,13 +54,6 @@ final class PluginDependencyResolver implements PluginDependencyResolverInterfac
             }
         }
 
-        foreach ($plugin->conflicts() as $conflictingAlias) {
-            $conflict = $plugins[$conflictingAlias] ?? null;
-
-            if ($conflict !== null && $conflict->enabled()) {
-                throw ConflictingPluginException::between($plugin->alias(), $conflictingAlias);
-            }
-        }
     }
 
     /**
@@ -90,10 +90,7 @@ final class PluginDependencyResolver implements PluginDependencyResolverInterfac
                 throw CircularPluginDependencyException::forCycle(array_keys($remaining));
             }
 
-            uasort(
-                $ready,
-                static fn (PluginInterface $a, PluginInterface $b): int => [$a->priority(), $a->alias()] <=> [$b->priority(), $b->alias()],
-            );
+            ksort($ready);
 
             $next = array_key_first($ready);
             $ordered[$next] = $remaining[$next];

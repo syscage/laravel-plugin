@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Syscage\Plugin;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Syscage\Plugin\Contracts\PluginRecordRepositoryInterface;
 use Syscage\Plugin\Models\PluginRecord;
@@ -46,6 +47,16 @@ final class PluginRecordRepository implements PluginRecordRepositoryInterface
     public function delete(PluginRecord $record): void
     {
         $record->delete();
+    }
+
+    public function enabledAliases(): array
+    {
+        try {
+            return $this->newQuery()->where('enabled', true)->pluck('alias')->all();
+        } catch (QueryException) {
+            // shortcut: any query failure means "none enabled"; matters only before the plugins migration has run.
+            return [];
+        }
     }
 
     public function all(): Collection

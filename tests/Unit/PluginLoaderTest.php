@@ -15,21 +15,11 @@ final class PluginLoaderTest extends TestCase
     public function test_it_registers_the_provider_of_an_enabled_plugin(): void
     {
         $app = $this->createMock(Application::class);
-        $plugin = new FakePlugin('demo-plugin', enabled: true);
+        $plugin = new FakePlugin('demo-plugin');
 
         $app->expects($this->once())
             ->method('register')
             ->with($plugin->provider());
-
-        (new PluginLoader($app))->load($plugin);
-    }
-
-    public function test_it_skips_disabled_plugins(): void
-    {
-        $app = $this->createMock(Application::class);
-        $plugin = new FakePlugin('demo-plugin', enabled: false);
-
-        $app->expects($this->never())->method('register');
 
         (new PluginLoader($app))->load($plugin);
     }

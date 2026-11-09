@@ -41,8 +41,8 @@ interface PluginRegistryInterface
     public function all(): array;
 
     /**
-     * All registered plugins with `enabled` set to true, keyed by alias,
-     * ordered by ascending priority.
+     * All registered plugins whose database record is enabled, keyed by
+     * alias and ordered alphabetically.
      *
      * @return array<string, PluginInterface>
      */

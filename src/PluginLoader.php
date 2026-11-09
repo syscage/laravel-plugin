@@ -21,10 +21,6 @@ final class PluginLoader implements PluginLoaderInterface
 
     public function load(PluginInterface $plugin): void
     {
-        if (! $plugin->enabled()) {
-            return;
-        }
-
         $provider = $plugin->provider();
 
         if (! class_exists($provider)) {

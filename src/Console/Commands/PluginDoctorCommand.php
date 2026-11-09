@@ -10,7 +10,6 @@ use Syscage\Plugin\Contracts\PluginDependencyResolverInterface;
 use Syscage\Plugin\Contracts\PluginInterface;
 use Syscage\Plugin\Contracts\PluginManagerInterface;
 use Syscage\Plugin\Contracts\PluginRecordRepositoryInterface;
-use Syscage\Plugin\Exceptions\ConflictingPluginException;
 use Syscage\Plugin\Exceptions\MissingPluginDependencyException;
 use Syscage\Plugin\Support\PluginHasher;
 use Throwable;
@@ -99,7 +98,7 @@ final class PluginDoctorCommand extends Command
         try {
             $resolver->validate($plugin, $manager->all());
             $dependencies = '<fg=green>ok</>';
-        } catch (MissingPluginDependencyException|ConflictingPluginException $exception) {
+        } catch (MissingPluginDependencyException $exception) {
             $dependencies = '<fg=red>' . $exception->getMessage() . '</>';
             $healthy = false;
         }

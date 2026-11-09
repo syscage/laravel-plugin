@@ -48,6 +48,7 @@ use Syscage\Plugin\Console\Commands\Generators\MakeRulePluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeSeederPluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeTestPluginCommand;
 use Syscage\Plugin\Console\Commands\Generators\MakeTraitPluginCommand;
+use Syscage\Plugin\Console\Commands\HooksListCommand;
 use Syscage\Plugin\Console\Commands\MakePluginCommand;
 use Syscage\Plugin\Console\Commands\PluginCacheCommand;
 use Syscage\Plugin\Console\Commands\PluginClearCommand;
@@ -65,6 +66,7 @@ use Syscage\Plugin\Console\Commands\PluginUpdateCommand;
 use Syscage\Plugin\Console\Commands\Queue\QueueWorkPluginCommand;
 use Syscage\Plugin\Console\Commands\Testing\TestPluginCommand;
 use Syscage\Plugin\Contracts\FrontendDetectorInterface;
+use Syscage\Plugin\Contracts\HookManagerInterface;
 use Syscage\Plugin\Contracts\FrontendManifestGeneratorInterface;
 use Syscage\Plugin\Contracts\PluginAssetManagerInterface;
 use Syscage\Plugin\Contracts\PluginAutoloaderInterface;
@@ -87,6 +89,9 @@ use Syscage\Plugin\Contracts\PluginSeederManagerInterface;
 use Syscage\Plugin\Contracts\PluginSidebarManagerInterface;
 use Syscage\Plugin\Contracts\PluginTranslationManagerInterface;
 use Syscage\Plugin\Contracts\PluginViewManagerInterface;
+use Syscage\Plugin\Events\PluginDisabled;
+use Syscage\Plugin\Events\PluginUninstalled;
+use Syscage\Plugin\Listeners\ForgetPluginHooks;
 use Syscage\Plugin\Support\PluginRouteFinder;
 
 /**
@@ -142,11 +147,16 @@ final class PluginServiceProvider extends ServiceProvider
                 PluginPublishCommand::class,
                 PluginDoctorCommand::class,
                 PluginInfoCommand::class,
+                HooksListCommand::class,
                 ...$this->generatorCommands(),
             ]);
         }
 
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
+        $events = $this->app->make(Dispatcher::class);
+        $events->listen(PluginDisabled::class, [ForgetPluginHooks::class, 'handleDisabled']);
+        $events->listen(PluginUninstalled::class, [ForgetPluginHooks::class, 'handleUninstalled']);
 
         // Deferred until the application has finished booting: plugin
         // loading registers each plugin's own service provider, and a
@@ -192,6 +202,7 @@ final class PluginServiceProvider extends ServiceProvider
         $this->app->singleton(PluginAutoloaderInterface::class, PluginAutoloader::class);
         $this->app->singleton(PluginManifestRepositoryInterface::class, PluginManifestRepository::class);
         $this->app->singleton(PluginRegistryInterface::class, PluginRegistry::class);
+        $this->app->singleton(HookManagerInterface::class, HookManager::class);
         $this->app->singleton(PluginDependencyResolverInterface::class, PluginDependencyResolver::class);
         $this->app->singleton(PluginLoaderInterface::class, PluginLoader::class);
         $this->app->singleton(PluginRecordRepositoryInterface::class, PluginRecordRepository::class);
@@ -223,6 +234,7 @@ final class PluginServiceProvider extends ServiceProvider
         ));
 
         $this->app->singleton(PluginSidebarManagerInterface::class, static fn (Application $app): PluginSidebarManager => new PluginSidebarManager(
+            $app->make('db.connection'),
             $app->make(Filesystem::class),
             $app->make('config')->get('plugin.cache.sidebar', $app->basePath('bootstrap/cache/sidebar.php')),
         ));

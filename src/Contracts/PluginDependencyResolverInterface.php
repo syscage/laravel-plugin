@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Syscage\Plugin\Contracts;
 
 use Syscage\Plugin\Exceptions\CircularPluginDependencyException;
-use Syscage\Plugin\Exceptions\ConflictingPluginException;
 use Syscage\Plugin\Exceptions\MissingPluginDependencyException;
 
 /**
@@ -24,7 +23,6 @@ interface PluginDependencyResolverInterface
      * @return array<string, PluginInterface>
      *
      * @throws MissingPluginDependencyException
-     * @throws ConflictingPluginException
      * @throws CircularPluginDependencyException
      */
     public function resolve(array $plugins): array;
@@ -36,7 +34,6 @@ interface PluginDependencyResolverInterface
      * @param array<string, PluginInterface> $plugins Plugins keyed by alias.
      *
      * @throws MissingPluginDependencyException
-     * @throws ConflictingPluginException
      */
     public function validate(PluginInterface $plugin, array $plugins): void;
 }

@@ -15,18 +15,13 @@ final class FakePlugin implements PluginInterface
 {
     /**
      * @param array<int, array<string, mixed>|string> $requires
-     * @param array<int, string> $conflicts
      */
     public function __construct(
         private readonly string $alias,
         private readonly string $version = '1.0.0',
-        private readonly int $priority = 100,
-        private readonly bool $enabled = true,
         private readonly array $requires = [],
-        private readonly array $conflicts = [],
         private readonly ?string $providerOverride = null,
         private readonly ?string $basePath = null,
-        private readonly array $sidebarValue = [],
         private readonly ?string $tablePrefixValue = null,
     ) {
     }
@@ -46,11 +41,6 @@ final class FakePlugin implements PluginInterface
         return $this->alias;
     }
 
-    public function description(): string
-    {
-        return '';
-    }
-
     public function version(): string
     {
         return $this->version;
@@ -66,34 +56,9 @@ final class FakePlugin implements PluginInterface
         return __NAMESPACE__;
     }
 
-    public function priority(): int
-    {
-        return $this->priority;
-    }
-
-    public function enabled(): bool
-    {
-        return $this->enabled;
-    }
-
     public function requires(): array
     {
         return $this->requires;
-    }
-
-    public function conflicts(): array
-    {
-        return $this->conflicts;
-    }
-
-    public function permissions(): array
-    {
-        return [];
-    }
-
-    public function sidebar(): array
-    {
-        return $this->sidebarValue;
     }
 
     public function authors(): array

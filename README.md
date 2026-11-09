@@ -45,7 +45,7 @@ plugins/blog-post/
 └── README.md
 ```
 
-`plugin.json` is the plugin's manifest — name, alias, version, its service provider's class name, dependencies, permissions, and sidebar contributions. `src/Plugin.php` extends `Syscage\Plugin\AbstractPlugin` and exposes every path a manager or command needs (`$plugin->viewPath()`, `$plugin->migrationPath()`, ...) plus lifecycle hooks (`install()`, `uninstall()`, `enable()`, `disable()`, `update()`) you can override. The plugin's own service provider extends `Syscage\Plugin\PluginServiceProviderBase`, which auto-wires routes, views, translations, migrations, config, assets, and console commands for you.
+`plugin.json` is the plugin's manifest — name, alias, version, its service provider's class name, and dependencies. Sidebar items and permissions are seeded by the plugin's `SideBarSeeder` and `PermissionSeeder`. `src/Plugin.php` extends `Syscage\Plugin\AbstractPlugin` and exposes every path a manager or command needs (`$plugin->viewPath()`, `$plugin->migrationPath()`, ...) plus lifecycle hooks (`install()`, `uninstall()`, `enable()`, `disable()`, `update()`) you can override. The plugin's own service provider extends `Syscage\Plugin\PluginServiceProviderBase`, which auto-wires routes, views, translations, migrations, config, assets, and console commands for you.
 
 ## Plugin lifecycle
 
@@ -62,11 +62,11 @@ php artisan plugin:doctor                  # health-check every plugin's provide
 php artisan plugin:publish blog-post     # (re-)publish a plugin's public assets
 ```
 
-`requires`/`conflicts` in `plugin.json` are validated (including semver version constraints) before install/enable, and a plugin's loading order is resolved topologically by its dependencies, then by `priority`. Unlike `plugin:uninstall` (which only removes the database record and runs the plugin's `uninstall()` hook), `plugin:delete` removes the plugin from everywhere — it's the one to reach for when you want a plugin fully gone, and it's resilient enough to also clean up a plugin whose directory was already removed by hand, leaving only an orphaned database record and stale caches behind.
+`requires` in `plugin.json` is validated (including semver version constraints) before install/enable, and a plugin's loading order is resolved topologically by its dependencies, then by alias. Unlike `plugin:uninstall` (which only removes the database record and runs the plugin's `uninstall()` hook), `plugin:delete` removes the plugin from everywhere — it's the one to reach for when you want a plugin fully gone, and it's resilient enough to also clean up a plugin whose directory was already removed by hand, leaving only an orphaned database record and stale caches behind.
 
 ### Customizing the plugin record model
 
-Installed-plugin state (UUID, install/enable timestamps, priority, ...) is persisted through `Syscage\Plugin\Models\PluginRecord`, an ordinary Eloquent model. Extend it with your own model — to add relationships, casts, or move it under your app's own namespace — and point the `model` key in `config/plugin.php` at your subclass:
+Installed-plugin state (UUID, install/enable timestamps, enabled state, ...) is persisted through `Syscage\Plugin\Models\PluginRecord`, an ordinary Eloquent model. Extend it with your own model — to add relationships, casts, or move it under your app's own namespace — and point the `model` key in `config/plugin.php` at your subclass:
 
 ```php
 // app/Models//Plugin.php
@@ -174,6 +174,10 @@ Every alias accepts `{plugin}` as its first argument (the plugin's alias or mani
 > `config:cache-plugin`, `route:cache-plugin`, `view:cache-plugin`, `event:cache-plugin`, and `optimize-plugin` still require `{plugin}` for command-family consistency, but rebuild the shared, application-wide cache — they don't scope it to one plugin.
 
 `db:seed-plugin` relies on that `DatabaseSeeder` existing; `make:plugin` scaffolds an empty one for you at `src/database/seeders/DatabaseSeeder.php`. A plain `php artisan db:seed` also seeds every **enabled** plugin's `DatabaseSeeder` after the host's own seeders, just as `php artisan migrate` includes plugin migrations. A `db:seed` run with an explicit `--class` is never expanded, and you can turn this off with `'seed_with_host' => false` in `config/plugin.php`.
+
+## Hooks
+
+`Syscage\Plugin\Facades\Hooks` lets the host and plugins share behaviour without importing each other: `provide`/`call` for a named method, `modify`/`filter` to change a value in turn, and `on`/`do` to react to events. Hooks registered with a plugin alias are removed when that plugin is disabled or uninstalled. `php artisan hooks:list` shows them all. See `docs/2.0.0/hooks.md`.
 
 ## Frontend integration
 

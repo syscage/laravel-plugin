@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Syscage\Plugin;
 
 use Syscage\Plugin\Contracts\PluginInterface;
+use Syscage\Plugin\Contracts\PluginRecordRepositoryInterface;
 use Syscage\Plugin\Contracts\PluginRegistryInterface;
 use Syscage\Plugin\Exceptions\PluginNotFoundException;
 
@@ -17,6 +18,11 @@ final class PluginRegistry implements PluginRegistryInterface
      * @var array<string, PluginInterface>
      */
     private array $plugins = [];
+
+    public function __construct(
+        private readonly PluginRecordRepositoryInterface $records,
+    ) {
+    }
 
     public function register(PluginInterface $plugin): void
     {
@@ -45,9 +51,9 @@ final class PluginRegistry implements PluginRegistryInterface
 
     public function enabled(): array
     {
-        $enabled = array_filter($this->plugins, static fn (PluginInterface $plugin): bool => $plugin->enabled());
+        $enabled = array_intersect_key($this->plugins, array_flip($this->records->enabledAliases()));
 
-        uasort($enabled, static fn (PluginInterface $a, PluginInterface $b): int => $a->priority() <=> $b->priority());
+        ksort($enabled);
 
         return $enabled;
     }
