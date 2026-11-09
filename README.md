@@ -177,7 +177,7 @@ Every alias accepts `{plugin}` as its first argument (the plugin's alias or mani
 
 ## Hooks
 
-`Syscage\Plugin\Facades\Hooks` lets the host and plugins share behaviour without importing each other: `provide`/`call` for a named method, `modify`/`filter` to change a value in turn, and `on`/`do` to react to events. Hooks registered with a plugin alias are removed when that plugin is disabled or uninstalled. `php artisan hooks:list` shows them all. See `docs/2.0.0/hooks.md`.
+`Syscage\Plugin\Facades\Hooks` lets the host and plugins share behaviour without importing each other: `provide`/`call` for a named method, `modify`/`filter` to change a value in turn, and `on`/`do` to react to events. Hooks registered with a plugin alias are removed when that plugin is disabled or uninstalled. `php artisan hooks:list` shows them all.
 
 ## Frontend integration
 
