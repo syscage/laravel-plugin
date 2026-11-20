@@ -180,6 +180,25 @@ final class PluginCommandsTest extends TestCase
         $this->assertFileExists($this->cacheDirectory . '/public/resource-plugin/asset.txt');
     }
 
+    public function test_link_is_an_alias_that_links_a_plugins_assets(): void
+    {
+        $this->artisan('plugin:link', ['alias' => 'resource-plugin'])
+            ->assertSuccessful()
+            ->expectsOutputToContain('published');
+
+        $this->assertFileExists($this->cacheDirectory . '/public/resource-plugin/asset.txt');
+    }
+
+    public function test_link_without_an_alias_links_every_enabled_plugin(): void
+    {
+        $this->artisan('plugin:install', ['alias' => 'resource-plugin'])->assertSuccessful();
+        $this->artisan('plugin:enable', ['alias' => 'resource-plugin'])->assertSuccessful();
+
+        $this->artisan('plugin:link')->assertSuccessful();
+
+        $this->assertFileExists($this->cacheDirectory . '/public/resource-plugin/asset.txt');
+    }
+
     public function test_info_displays_plugin_details(): void
     {
         $this->artisan('plugin:info', ['alias' => 'resource-plugin'])
