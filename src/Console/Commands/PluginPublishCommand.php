@@ -12,13 +12,14 @@ use Syscage\Plugin\Contracts\PluginManagerInterface;
 
 /**
  * Publishes a plugin's public assets into the host application's public
- * directory. Publishes every enabled plugin when no alias is given.
+ * directory. Publishes every discovered plugin (enabled or not, installed
+ * or not) when no alias is given.
  */
 final class PluginPublishCommand extends Command
 {
     use ResolvesPlugin;
 
-    protected $signature = 'plugin:publish {alias? : The plugin alias; omit to publish every enabled plugin}';
+    protected $signature = 'plugin:publish {alias? : The plugin alias; omit to publish every discovered plugin}';
 
     protected $description = "Publish (symlink) a plugin's public assets into public/plugins";
 
@@ -41,7 +42,7 @@ final class PluginPublishCommand extends Command
             return self::SUCCESS;
         }
 
-        foreach ($manager->enabled() as $plugin) {
+        foreach ($manager->all() as $plugin) {
             $this->publish($assets, $plugin);
         }
 
