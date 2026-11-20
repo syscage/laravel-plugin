@@ -24,18 +24,18 @@ final class PluginAssetManager implements PluginAssetManagerInterface
     ) {
     }
 
-    public function register(PluginInterface $plugin): void
+    public function register(PluginInterface $plugin): bool
     {
         $source = $plugin->publicPath();
 
         if (! $this->files->isDirectory($source)) {
-            return;
+            return false;
         }
 
         $target = rtrim($this->publicPath, '/\\') . DIRECTORY_SEPARATOR . $plugin->alias();
 
         if ($this->files->exists($target)) {
-            return;
+            return true;
         }
 
         $this->files->ensureDirectoryExists(dirname($target));
@@ -45,6 +45,9 @@ final class PluginAssetManager implements PluginAssetManagerInterface
         if (! $this->files->exists($target)) {
             $this->files->copyDirectory($source, $target);
         }
+
+        // Both link() and copyDirectory() fail silently (e.g. unwritable public/).
+        return $this->files->exists($target);
     }
 
     public function unregister(string $alias): void

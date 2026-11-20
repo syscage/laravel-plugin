@@ -50,8 +50,9 @@ final class PluginPublishCommand extends Command
 
     private function publish(PluginAssetManagerInterface $assets, PluginInterface $plugin): void
     {
-        $assets->register($plugin);
-
-        $this->components->twoColumnDetail($plugin->alias(), 'published');
+        $this->components->twoColumnDetail(
+            $plugin->alias(),
+            $assets->register($plugin) ? 'published' : 'failed (no src/public directory, or public/plugins is not writable)',
+        );
     }
 }

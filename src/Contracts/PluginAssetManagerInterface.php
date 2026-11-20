@@ -10,7 +10,13 @@ namespace Syscage\Plugin\Contracts;
  */
 interface PluginAssetManagerInterface
 {
-    public function register(PluginInterface $plugin): void;
+    /**
+     * Link (or copy) the plugin's "src/public" into the public directory.
+     *
+     * @return bool False when there is no "src/public" directory or the
+     *              link/copy could not be created.
+     */
+    public function register(PluginInterface $plugin): bool;
 
     /**
      * Remove a plugin's published assets (the symlink or copied directory
