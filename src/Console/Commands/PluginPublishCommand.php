@@ -20,7 +20,10 @@ final class PluginPublishCommand extends Command
 
     protected $signature = 'plugin:publish {alias? : The plugin alias; omit to publish every enabled plugin}';
 
-    protected $description = "Publish a plugin's public assets";
+    protected $description = "Publish (symlink) a plugin's public assets into public/plugins";
+
+    /** @var array<int, string> */
+    protected $aliases = ['plugin:link'];
 
     public function handle(PluginManagerInterface $manager, PluginAssetManagerInterface $assets): int
     {
